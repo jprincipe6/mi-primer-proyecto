@@ -33,7 +33,7 @@
 #include <utility/vector0.hh>
 #include <utility/excn/Exceptions.hh>
 #include <utility/vector1.hh>
-
+#include <vector>
 
 namespace protocols {
 namespace moves {
@@ -106,7 +106,6 @@ std::string MonteCarloUtil::get_name() const
     return "MonteCarloUtil";
 }
 
-
 TrialMover::TrialMover() :
     start_weight_( 0.0 ),
     original_weight( 0.0 ),
@@ -157,6 +156,16 @@ void TrialMover::set_mc( MonteCarloOP mc_in ) {
     mc_ = mc_in;
 }
 
+/// Devuelve el tamaño de un fichero
+int get_file_size(std::string filename) // path to file
+{
+    FILE *p_file = NULL;
+    p_file = fopen(filename.c_str(),"rb");
+    fseek(p_file,0,SEEK_END);
+    int size = ftell(p_file);
+    fclose(p_file);
+    return size;
+}
 
 /// @brief:
 ///  the apply function for a trial
@@ -186,13 +195,17 @@ void TrialMover::apply( pose::Pose & pose )
     using namespace core;
     using namespace core::import_pose;
     using namespace pose;
+    std::vector<PoseOP> soluciones_anteriores;
+    int size = get_file_size("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files/1elw.pdb");
     PoseOP ejecucion_previa = pose_from_file("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files/1elw.pdb");
+    soluciones_anteriores.push_back(ejecucion_previa);
+    
     core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*ejecucion_previa, pose);
     bool dentro_del_umbral = rmsd_vs_actual < 0.5;
     /// test if MC accepts or rejects it
     bool accepted_move = mc_->boltzmann( pose, mover_->type() );
 
-    std::cout << "Hello, World!";
+    std::cout << "Hello, Tamano file: " << size;
     std::cout<< rmsd_vs_actual << " " << accepted_move << std::endl;
     std::cout << "TrialMover-boltzmann_1" << std::endl;
     std::cout << "Prueba tonta " << std::endl;
