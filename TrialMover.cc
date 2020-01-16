@@ -34,6 +34,8 @@
 #include <utility/excn/Exceptions.hh>
 #include <utility/vector1.hh>
 #include <vector>
+#include <sys/types.h>
+#include <dirent.h>
 
 namespace protocols {
 namespace moves {
@@ -167,6 +169,29 @@ int get_file_size(std::string filename) // path to file
     return size;
 }
 
+std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
+    std::vector<std::string> results;
+    DIR* dirFile = opendir(path);
+    if (dirFile){
+        struct dirent* hFile;
+        errno = 0;
+        while ((hFile = readdir(dirFile)) != NULL) {
+            if( !strcmp(hFile->d_name, ".")) continue;
+            if( !strcmp(hFile->d_name, "..")) continue;
+            
+            // IN LINUX HIDDEN FILES ALL START WITH '.'
+            //if ( gIgnoreHidden && ( hFile->d_name[0] == '.' )) continue;
+            // dirFile.name is the name of the file. Do whatever string comparison
+            // you want here. Something like:
+            if ( strstr( hFile->d_name, ".pdb" ))
+               printf( " found an .pdb file: %s \n", hFile->d_name);
+               results.push_back(hFile->d_name);
+        }
+        closedir(dirFile);
+    }
+    return results;
+}
+
 /// @brief:
 ///  the apply function for a trial
 /// @details:
@@ -195,8 +220,9 @@ void TrialMover::apply( pose::Pose & pose )
     using namespace core;
     using namespace core::import_pose;
     using namespace pose;
+    std::vector<std::string>::iterator it;
     std::vector<PoseOP> soluciones_anteriores;
-    int size = get_file_size("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files/1elw.pdb");
+    std::vector<std::string> paths_soluciones_pdbs = get_paths_pdbs_from_dir("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files");
     PoseOP ejecucion_previa = pose_from_file("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files/1elw.pdb");
     soluciones_anteriores.push_back(ejecucion_previa);
     
@@ -204,8 +230,12 @@ void TrialMover::apply( pose::Pose & pose )
     bool dentro_del_umbral = rmsd_vs_actual < 0.5;
     /// test if MC accepts or rejects it
     bool accepted_move = mc_->boltzmann( pose, mover_->type() );
-
-    std::cout << "Hello, Tamano file: " << size;
+    
+    for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+         std::cout << ' ' << *it;
+         std::cout << '\n';
+    }
+    std::cout << "================" << std::endl;
     std::cout<< rmsd_vs_actual << " " << accepted_move << std::endl;
     std::cout << "TrialMover-boltzmann_1" << std::endl;
     std::cout << "Prueba tonta " << std::endl;
