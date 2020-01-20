@@ -223,28 +223,36 @@ void TrialMover::apply( pose::Pose & pose )
     using namespace pose;
     std::vector<std::string>::iterator it;
     std::vector<PoseOP> soluciones_anteriores;
-    
+    std::vector<PoseOP>::iterator it_pose;
     std::vector<std::string> paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     //Obtener el path del file.pdb
-    std::string path_file_pdb = std::string (path_input) + std::string("/1elw.pdb");
+    //std::string path_file_pdb = std::string (path_input) + std::string("/1elw.pdb");
     
-    PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
+    //PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
     
-    soluciones_anteriores.push_back(ejecucion_previa);
+    //soluciones_anteriores.push_back(ejecucion_previa);
     
-    core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*ejecucion_previa, pose);
-    bool dentro_del_umbral = rmsd_vs_actual < 0.5;
+    //core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*ejecucion_previa, pose);
+    //bool dentro_del_umbral = rmsd_vs_actual < 0.5;
     /// test if MC accepts or rejects it
     bool accepted_move = mc_->boltzmann( pose, mover_->type() );
     
     for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-         std::cout << ' ' << *it;
-         std::cout << '\n';
+        std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+        PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
+        soluciones_anteriores.push_back(ejecucion_previa);
+        //std::cout << ' ' << *it;
+        //std::cout << '\n';
     }
-    std::cout << "================" << std::endl;
-    std::cout<< rmsd_vs_actual << " " << accepted_move << std::endl;
-    std::cout << "TrialMover-boltzmann_1" << std::endl;
-    std::cout << "Prueba tonta " << std::endl;
+    
+    for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end(); it_pose++){
+        core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+        bool dentro_del_umbral = rmsd_vs_actual < 0.5;
+        std::cout << "================" << std::endl;
+        std::cout<< rmsd_vs_actual << " " << accepted_move << std::endl;
+        std::cout << "TrialMover-boltzmann_1" << std::endl;
+        std::cout << "Prueba tonta " << std::endl;
+    }
     
     if ( keep_stats_type() == all_stats ) {
         stats_.add_score( mc_->total_score_of_last_considered_pose() );
