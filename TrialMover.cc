@@ -43,7 +43,7 @@ namespace moves {
 static basic::Tracer tr( "protocols.TrialMover" );
 
 using namespace core;
-
+const char *path_input = "/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files";
 MonteCarloUtil::MonteCarloUtil() : mc_(/* 0 */)
 {
 
@@ -183,9 +183,10 @@ std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
             //if ( gIgnoreHidden && ( hFile->d_name[0] == '.' )) continue;
             // dirFile.name is the name of the file. Do whatever string comparison
             // you want here. Something like:
-            if ( strstr( hFile->d_name, ".pdb" ))
+            if ( strstr( hFile->d_name, ".pdb" )){
                printf( " found an .pdb file: %s \n", hFile->d_name);
                results.push_back(hFile->d_name);
+            }
         }
         closedir(dirFile);
     }
@@ -222,8 +223,13 @@ void TrialMover::apply( pose::Pose & pose )
     using namespace pose;
     std::vector<std::string>::iterator it;
     std::vector<PoseOP> soluciones_anteriores;
-    std::vector<std::string> paths_soluciones_pdbs = get_paths_pdbs_from_dir("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files");
-    PoseOP ejecucion_previa = pose_from_file("/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/input_files/1elw.pdb");
+    
+    std::vector<std::string> paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
+    //Obtener el path del file.pdb
+    std::string path_file_pdb = std::string (path_input) + std::string("/1elw.pdb");
+    
+    PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
+    
     soluciones_anteriores.push_back(ejecucion_previa);
     
     core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*ejecucion_previa, pose);
