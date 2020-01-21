@@ -116,6 +116,33 @@ TrialMover::TrialMover() :
     stats_type_( all_stats )
 {}
 
+
+
+std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
+    std::vector<std::string> results;
+    DIR* dirFile = opendir(path);
+    if (dirFile){
+        struct dirent* hFile;
+        errno = 0;
+        while ((hFile = readdir(dirFile)) != NULL) {
+            if( !strcmp(hFile->d_name, ".")) continue;
+            if( !strcmp(hFile->d_name, "..")) continue;
+            
+            // IN LINUX HIDDEN FILES ALL START WITH '.'
+            //if ( gIgnoreHidden && ( hFile->d_name[0] == '.' )) continue;
+            // dirFile.name is the name of the file. Do whatever string comparison
+            // you want here. Something like:
+            if ( strstr( hFile->d_name, ".pdb" )){
+               printf( " found an .pdb file: %s \n", hFile->d_name);
+               results.push_back(hFile->d_name);
+            }
+        }
+        closedir(dirFile);
+    }
+    return results;
+}
+
+
 // constructor with arguments
 TrialMover::TrialMover( MoverOP mover_in, MonteCarloOP mc_in ) :
     start_weight_( 0.0 ),
@@ -124,8 +151,29 @@ TrialMover::TrialMover( MoverOP mover_in, MonteCarloOP mc_in ) :
     delta( 0.0 ),
     stats_type_( all_stats )
 {
+    
+    using namespace core;
+    using namespace core::import_pose;
+    using namespace pose;
+    std::vector<PoseOP>::iterator it_pose;
+    std::vector<std::string>::iterator it;
+
     mover_ = mover_in;
     mc_ = mc_in;
+    
+    
+    rmsd_vs_actual_acc = 0;
+    cont_total_rmsd_vs_actual_acc = 0;
+    paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
+
+    
+    for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+        std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+        PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
+        soluciones_anteriores.push_back(ejecucion_previa);
+        //std::cout << ' ' << *it;
+        //std::cout << '\n';
+    }
 }
 
 // Copy constructor
@@ -168,29 +216,19 @@ int get_file_size(std::string filename) // path to file
     fclose(p_file);
     return size;
 }
+/// @author: JEAN
+void TrialMover::imprimir_estadisticas( )
+{
+    
+    std::cout << "============================================" << std::endl;
+    std::cout << "========= FINAL STATS =============" << std::endl;
 
-std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
-    std::vector<std::string> results;
-    DIR* dirFile = opendir(path);
-    if (dirFile){
-        struct dirent* hFile;
-        errno = 0;
-        while ((hFile = readdir(dirFile)) != NULL) {
-            if( !strcmp(hFile->d_name, ".")) continue;
-            if( !strcmp(hFile->d_name, "..")) continue;
-            
-            // IN LINUX HIDDEN FILES ALL START WITH '.'
-            //if ( gIgnoreHidden && ( hFile->d_name[0] == '.' )) continue;
-            // dirFile.name is the name of the file. Do whatever string comparison
-            // you want here. Something like:
-            if ( strstr( hFile->d_name, ".pdb" )){
-               printf( " found an .pdb file: %s \n", hFile->d_name);
-               results.push_back(hFile->d_name);
-            }
-        }
-        closedir(dirFile);
+    if (cont_total_rmsd_vs_actual_acc > 0) {
+        std::cout << "media del rmsd vs actual es " << rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc << std::endl;
     }
-    return results;
+    
+    std::cout << "============================================" << std::endl;
+
 }
 
 /// @brief:
@@ -221,10 +259,7 @@ void TrialMover::apply( pose::Pose & pose )
     using namespace core;
     using namespace core::import_pose;
     using namespace pose;
-    std::vector<std::string>::iterator it;
-    std::vector<PoseOP> soluciones_anteriores;
     std::vector<PoseOP>::iterator it_pose;
-    std::vector<std::string> paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     //Obtener el path del file.pdb
     //std::string path_file_pdb = std::string (path_input) + std::string("/1elw.pdb");
     
@@ -234,25 +269,32 @@ void TrialMover::apply( pose::Pose & pose )
     
     //core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*ejecucion_previa, pose);
     //bool dentro_del_umbral = rmsd_vs_actual < 0.5;
+    
+    
     /// test if MC accepts or rejects it
-    bool accepted_move = mc_->boltzmann( pose, mover_->type() );
+    //  CODIGO ANTERIOR:  bool accepted_move = mc_->boltzmann( pose, mover_->type() );
+   
     
-    for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-        std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-        PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
-        soluciones_anteriores.push_back(ejecucion_previa);
-        //std::cout << ' ' << *it;
-        //std::cout << '\n';
-    }
-    
+    core::Real umbral_limite = 500;
+    bool accepted_move = false;
     for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end(); it_pose++){
-        core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
-        bool dentro_del_umbral = rmsd_vs_actual < 0.5;
-        std::cout << "================" << std::endl;
-        std::cout<< rmsd_vs_actual << " " << accepted_move << std::endl;
-        std::cout << "TrialMover-boltzmann_1" << std::endl;
-        std::cout << "Prueba tonta " << std::endl;
-    }
+           core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+        
+        rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
+        cont_total_rmsd_vs_actual_acc = cont_total_rmsd_vs_actual_acc + 1;
+           bool dentro_del_umbral = rmsd_vs_actual < umbral_limite;
+           std::cout << "================" << std::endl;
+            if (rmsd_vs_actual < umbral_limite) {
+                accepted_move = mc_->boltzmann( pose, mover_->type() );
+            }
+           std::cout<< rmsd_vs_actual << " aceptado? " << accepted_move << std::endl;
+           std::cout << "TrialMover-boltzmann" << std::endl;
+           std::cout << "Prueba tonta " << std::endl;
+       }
+    
+    
+    
+   
     
     if ( keep_stats_type() == all_stats ) {
         stats_.add_score( mc_->total_score_of_last_considered_pose() );
