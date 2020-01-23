@@ -165,7 +165,8 @@ TrialMover::TrialMover( MoverOP mover_in, MonteCarloOP mc_in ) :
     rmsd_vs_actual_acc = 0;
     cont_total_rmsd_vs_actual_acc = 0;
     paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
-
+    acomuladorDeAceptadosCustom = 0;
+    acomuladorDeAceptadosNormal = 0;
     
     for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
         std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
@@ -216,17 +217,29 @@ int get_file_size(std::string filename) // path to file
     fclose(p_file);
     return size;
 }
-/// @author: JEAN
-void TrialMover::imprimir_estadisticas( )
+///@brief:
+///the apply print funcion for stats
+///@details:
+/// this function show the statics
+/// for each cycle.
+/// @author: Jean 2P. Príncipe
+
+void TrialMover::imprimir_estadisticas()
 {
     
     std::cout << "============================================" << std::endl;
-    std::cout << "========= FINAL STATS =============" << std::endl;
+    std::cout << "================ FINAL STATS ===============" << std::endl;
 
     if (cont_total_rmsd_vs_actual_acc > 0) {
-        std::cout << "media del rmsd vs actual es " << rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc << std::endl;
+        std::cout << "media del rmsd vs actual: " << (rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc) << std::endl;
     }
-    
+    if (acomuladorDeAceptadosNormal > 0){
+        std::cout <<"número total de aceptados - Normal: " << (acomuladorDeAceptadosNormal) << std::endl;
+    }
+    if (acomuladorDeAceptadosCustom > 0){
+        std::cout <<"número total de aceptados - Custom: " << (acomuladorDeAceptadosCustom) << std::endl;
+        std::cout <<"número total de no aceptados - Custom: " << (soluciones_anteriores.size() - acomuladorDeAceptadosCustom) << std::endl;
+    }
     std::cout << "============================================" << std::endl;
 
 }
@@ -275,24 +288,28 @@ void TrialMover::apply( pose::Pose & pose )
     //  CODIGO ANTERIOR:  bool accepted_move = mc_->boltzmann( pose, mover_->type() );
    
     
-    core::Real umbral_limite = 500;
+    core::Real umbral_limite = 1;
     bool accepted_move = false;
     for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end(); it_pose++){
            core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
         
         rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
-        cont_total_rmsd_vs_actual_acc = cont_total_rmsd_vs_actual_acc + 1;
+        cont_total_rmsd_vs_actual_acc += 1;
            bool dentro_del_umbral = rmsd_vs_actual < umbral_limite;
            std::cout << "================" << std::endl;
-            if (rmsd_vs_actual < umbral_limite) {
-                accepted_move = mc_->boltzmann( pose, mover_->type() );
+            accepted_move = mc_->boltzmann( pose, mover_->type() );
+            if (accepted_move==1) {
+                acomuladorDeAceptadosNormal += 1;
+            }
+            if (accepted_move==1 && rmsd_vs_actual > umbral_limite) {
+                acomuladorDeAceptadosCustom +=1;
             }
            std::cout<< rmsd_vs_actual << " aceptado? " << accepted_move << std::endl;
            std::cout << "TrialMover-boltzmann" << std::endl;
            std::cout << "Prueba tonta " << std::endl;
        }
-    
-    
+    //std::cout << "************" << std::endl;
+    //std::cout<<"Total de acepatos: "<< acomuladorDeAceptados << std::endl;
     
    
     

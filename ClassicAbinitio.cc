@@ -886,8 +886,8 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	}
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    // trial->imprimir_estadisticas();
-
+    //trial->imprimir_estadisticas();
+    
 	tr.Warning << "extended chain may still remain after " << stage1_cycles() << " cycles!" << std::endl;
 	done.show_unmoved( pose, tr.Warning );
 	mc().reset( pose ); // make sure that we keep the final structure

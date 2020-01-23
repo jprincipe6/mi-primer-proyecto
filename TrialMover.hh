@@ -205,7 +205,7 @@ public:
 	friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
 
     
-    void imprimir_estadisticas( );
+    void imprimir_estadisticas();
     
     
 protected:
@@ -215,8 +215,8 @@ protected:
     
     core::Real rmsd_vs_actual_acc;
     int cont_total_rmsd_vs_actual_acc;
-    
-    
+    int acomuladorDeAceptadosCustom;
+    int acomuladorDeAceptadosNormal;
 	MoverOP mover_;
 	MonteCarloOP mc_;
 	MoverStatistics stats_;
