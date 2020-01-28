@@ -37,10 +37,16 @@
 
 #include <utility/vector1.hh>
 
+#include <string>
+#include <vector>
+#include <sys/types.h>
+#include <dirent.h>
+
+std::vector<std::string> get_paths_pdbs_from_dir(const char* path);
+
+
 
 // Utility Headers
-
-
 namespace protocols {
 namespace moves {
 
@@ -205,7 +211,7 @@ public:
 	friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
 
     
-    void imprimir_estadisticas();
+    void imprimir_estadisticas(int numApplys);
     
     
 protected:

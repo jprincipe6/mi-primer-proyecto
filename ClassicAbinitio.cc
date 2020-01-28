@@ -478,10 +478,11 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 		tr.Info <<  "\n===================================================================\n";
 		tr.Info <<  "   Finished Abinitio                                                 \n";
 		tr.Info <<  std::endl;
-		
+    
+        
         // NOTA: aquí podemos modificar el nombre del pdb FINAL
-        // variable_nombre debería ser = get_paths_from_pdb().size() + 1;
-        //  pose.dump_pdb("./output_1elwA/solucion_anterior_"+variable_nombre+".pdb");
+        int variable_nombre = get_paths_pdbs_from_dir("./soluciones_1elwA/").size() + 1;
+        pose.dump_pdb("./soluciones_1elwA/solucion_anterior_"+std::to_string(variable_nombre)+".pdb");
 	}
 
 	if ( !bSkipStage5_ ) {
@@ -871,7 +872,9 @@ bool hConvergenceCheck::operator() ( const core::pose::Pose & pose ) {
 bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	AllResiduesChanged done( pose, brute_move_large()->insert_map(), *movemap() );
 	moves::MoverOP trial( stage1_mover( pose, trial_large() ) );
-
+    //derived = boost::dynamic_pointer_cast<protocols::moves::TrialMoverOP>(trial);
+    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
+    
 	// FragmentMoverOP frag_mover = brute_move_large_;
 	// fragment::FragmentIO().write("stage1_frags_classic.dat",*frag_mover->fragments());
 
@@ -886,7 +889,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	}
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    //trial->imprimir_estadisticas();
+    derived->imprimir_estadisticas(j-1);
     
 	tr.Warning << "extended chain may still remain after " << stage1_cycles() << " cycles!" << std::endl;
 	done.show_unmoved( pose, tr.Warning );
@@ -906,6 +909,8 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 	moves::RepeatMover( stage2_mover( pose, trials ), nr_cycles ).apply(pose);
 
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
+    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    derived->imprimir_estadisticas(nr_cycles);
     // trials->imprimir_estadisticas();
     
 	//is there a better way to find out how many steps ? for instance how many calls to scoring?
@@ -934,7 +939,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 	int nloop1 = 1;
 	int nloop2 = 10; //careful: if you change these the number of structures in the structure store changes.. problem with checkpointing
 	// individual checkpoints for each stage3 iteration would be a remedy. ...
-
+    
 	if ( short_insert_region_ ) {
 		nloop1 = 2;
 		nloop2 = 5;
@@ -980,6 +985,8 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
+    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    derived->imprimir_estadisticas(stage3_cycles()*10);
     // trials->imprimir_estadisticas();
 	return true;
 }
@@ -1026,13 +1033,22 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
 			recover_low( pose, STAGE_4 );
 
 			get_checkpoints().checkpoint( pose, get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk), true /*fold tree */ );
-		}
+          
+            // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
+            // estadisticas de cada iteracion en el loop de la fase stage4
+            derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+            derived->imprimir_estadisticas(stage4_cycles());
+        }
 		get_checkpoints().debug( get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk),  current_scorefxn()( pose ) );
 
 		//don't store last structure since it will be exactly the same as the final structure delivered back via apply
 		//  if( kk < nloop_stage4 ) // <-- this line was missing although the comment above was existant.
 		//   structure_store().push_back( mc_->lowest_score_pose() );
-	}  // loop kk
+	
+    
+ 
+      
+    }  // loop kk
 
 	if ( option[corrections::score::cenrot] ) {
 		//switch to cenrot model
@@ -1078,8 +1094,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
 		}
 	}
     
-    // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    // trials->imprimir_estadisticas();
+    
 
 	return true;
 }
