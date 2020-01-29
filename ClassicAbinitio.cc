@@ -890,6 +890,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived->imprimir_estadisticas(j-1);
+    derived->resetAcomuladores();
     
 	tr.Warning << "extended chain may still remain after " << stage1_cycles() << " cycles!" << std::endl;
 	done.show_unmoved( pose, tr.Warning );
@@ -911,6 +912,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
     derived->imprimir_estadisticas(nr_cycles);
+    derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
     
 	//is there a better way to find out how many steps ? for instance how many calls to scoring?
@@ -987,6 +989,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
     derived->imprimir_estadisticas(stage3_cycles()*10);
+    derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
 	return true;
 }
@@ -1038,6 +1041,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             // estadisticas de cada iteracion en el loop de la fase stage4
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
             derived->imprimir_estadisticas(stage4_cycles());
+            derived->resetAcomuladores();
         }
 		get_checkpoints().debug( get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk),  current_scorefxn()( pose ) );
 

@@ -212,7 +212,7 @@ public:
 
     
     void imprimir_estadisticas(int numApplys);
-    
+    void resetAcomuladores();
     
 protected:
     std::vector<core::pose::PoseOP> soluciones_anteriores;

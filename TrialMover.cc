@@ -265,40 +265,28 @@ void TrialMover::imprimir_estadisticas(int numApplys)
     if (cont_total_rmsd_vs_actual_acc > 0) {
         std::cout << "checkeos totales rmsd vs actual: " << (cont_total_rmsd_vs_actual_acc) << std::endl;
         std::cout << "media del rmsd vs actual: " << (rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc) << std::endl;
-        
-        std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
-        if (acomuladorDeAceptadosNormal > 0){
-            std::cout <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/cont_total_rmsd_vs_actual_acc <<"%" << std::endl;
-        } else {
-            std::cout <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
-        }
-        if (acomuladorDeAceptadosCustom > 0){
-            std::cout <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/cont_total_rmsd_vs_actual_acc <<"%" << std::endl;
-            //::cout <<"número total de no aceptados (Custom): " << (soluciones_anteriores.size() - acomuladorDeAceptadosCustom) << std::endl;
-        } else {
-            std::cout <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
-        }
+    }else{
+        std::cout << "media del rmsd vs actual: 0" << std::endl;
+    }
+    std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
+    if (acomuladorDeAceptadosNormal > 0){
+        std::cout <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
     } else {
-        std::cout << "checkeos totales rmsd vs actual: " << 0<< std::endl;
-        std::cout << "media del rmsd vs actual: " << 0<< std::endl;
-        
-        std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
-        if (acomuladorDeAceptadosNormal > 0){
-            std::cout <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
-        } else {
-            std::cout <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
-        }
-        if (acomuladorDeAceptadosCustom > 0){
-            std::cout <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
-            //::cout <<"número total de no aceptados (Custom): " << (soluciones_anteriores.size() - acomuladorDeAceptadosCustom) << std::endl;
-        } else {
-            std::cout <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
-        }
+        std::cout <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
+    }
+    if (acomuladorDeAceptadosCustom > 0){
+        std::cout <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/numApplys <<"%" << std::endl;
+    } else {
+        std::cout <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
     }
     std::cout << "============================================" << std::endl;
     
 }
 
+void TrialMover::resetAcomuladores(){
+    acomuladorDeAceptadosNormal = 0;
+    acomuladorDeAceptadosCustom = 0;
+}
 /// @brief:
 ///  the apply function for a trial
 /// @details:
@@ -339,24 +327,28 @@ void TrialMover::apply( pose::Pose & pose )
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         bool reemplazo_rechazado = false;
+        core::pose::Pose pose_anterior = pose;
+        
+        if (accepted_move == 1) {
+            acomuladorDeAceptadosNormal += 1;
+        }
         
         for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
+            //Para cada POSE de entrada se calcula la distancia RMSD a la actual
             core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
             rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
             cont_total_rmsd_vs_actual_acc += 1;
-            core::pose::Pose pose_anterior = pose;
             
-            if (accepted_move == 1) {
-                acomuladorDeAceptadosNormal += 1;
-            }
-            
-            if (accepted_move == 1 && rmsd_vs_actual > umbral_limite) {
-                acomuladorDeAceptadosCustom +=1;
-            } else {
-                pose = pose_anterior;
+            if (accepted_move == 1 && rmsd_vs_actual < umbral_limite) {
                 reemplazo_rechazado = true;
             }
-            
+        }
+        //Solo se acepta el reemplazo si todas las soluciones son mayor
+        //que el actual
+        if (accepted_move == 1 && reemplazo_rechazado == false) {
+            acomuladorDeAceptadosCustom +=1;
+        }else {
+            pose = pose_anterior;
         }
     } else {
         core::pose::Pose pose_anterior = pose;
