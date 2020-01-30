@@ -211,7 +211,7 @@ public:
 	friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
 
     
-    void imprimir_estadisticas(int numApplys);
+    void imprimir_estadisticas(int numApplys, int stage);
     void resetAcomuladores();
     
 protected:

@@ -172,8 +172,6 @@ stats_type_( all_stats )
         std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
         PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
         soluciones_anteriores.push_back(ejecucion_previa);
-        //std::cout << ' ' << *it;
-        //std::cout << '\n';
     }
 }
 
@@ -256,11 +254,12 @@ struct Estadisticas_Acc {
  return actuales;
  }*/
 
-void TrialMover::imprimir_estadisticas(int numApplys)
+void TrialMover::imprimir_estadisticas(int numApplys, int stage)
 {
     
     std::cout << "============================================" << std::endl;
     std::cout << "================ FINAL STATS ===============" << std::endl;
+    std::cout << "================ STAGE - " << stage <<" =================" << std::endl;
     
     if (cont_total_rmsd_vs_actual_acc > 0) {
         std::cout << "checkeos totales rmsd vs actual: " << (cont_total_rmsd_vs_actual_acc) << std::endl;
@@ -286,6 +285,8 @@ void TrialMover::imprimir_estadisticas(int numApplys)
 void TrialMover::resetAcomuladores(){
     acomuladorDeAceptadosNormal = 0;
     acomuladorDeAceptadosCustom = 0;
+    cont_total_rmsd_vs_actual_acc = 0;
+
 }
 /// @brief:
 ///  the apply function for a trial
@@ -320,9 +321,10 @@ void TrialMover::apply( pose::Pose & pose )
     //  CODIGO ANTERIOR:  bool accepted_move = mc_->boltzmann( pose, mover_->type() );
     
     
-    core::Real umbral_limite = 1;
+    core::Real umbral_limite = 100;
     bool accepted_move = false;
-    
+    std::vector<std::string>::iterator it;
+        
     if (soluciones_anteriores.size() > 0){
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
@@ -345,17 +347,17 @@ void TrialMover::apply( pose::Pose & pose )
         }
         //Solo se acepta el reemplazo si todas las soluciones son mayor
         //que el actual
-        if (accepted_move == 1 && reemplazo_rechazado == false) {
+        if (reemplazo_rechazado == false) {
             acomuladorDeAceptadosCustom +=1;
         }else {
             pose = pose_anterior;
+            std::cout << "Valor del normal: " << acomuladorDeAceptadosNormal<< std::endl;
         }
     } else {
-        core::pose::Pose pose_anterior = pose;
-        
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
+            std::cout << "No hay soluciones anteriores (.pdb)"<< std::endl;
         }
         
     }

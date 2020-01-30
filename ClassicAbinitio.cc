@@ -889,7 +889,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	}
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    derived->imprimir_estadisticas(j-1);
+    derived->imprimir_estadisticas(stage1_cycles(), 1);
     derived->resetAcomuladores();
     
 	tr.Warning << "extended chain may still remain after " << stage1_cycles() << " cycles!" << std::endl;
@@ -911,7 +911,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->imprimir_estadisticas(nr_cycles);
+    derived->imprimir_estadisticas(nr_cycles, 2);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
     
@@ -988,7 +988,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->imprimir_estadisticas(stage3_cycles()*10);
+    derived->imprimir_estadisticas(stage3_cycles()*10, 3);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
 	return true;
@@ -1040,7 +1040,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
             // estadisticas de cada iteracion en el loop de la fase stage4
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-            derived->imprimir_estadisticas(stage4_cycles());
+            derived->imprimir_estadisticas(stage4_cycles(), 4);
             derived->resetAcomuladores();
         }
 		get_checkpoints().debug( get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk),  current_scorefxn()( pose ) );
