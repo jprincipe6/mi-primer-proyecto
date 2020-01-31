@@ -214,7 +214,8 @@ public:
     void imprimir_estadisticas(int numApplys, int stage);
     void resetAcomuladores();
     void inicializarSolucionesAnteriores();
-    
+    void setEstadisticasStage4(int index, int numApplys);
+    void imprimirEstadisticasStage4();
 protected:
     std::vector<core::pose::PoseOP> soluciones_anteriores;
     std::vector<std::string> paths_soluciones_pdbs;

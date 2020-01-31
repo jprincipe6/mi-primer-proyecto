@@ -225,39 +225,86 @@ int get_file_size(std::string filename) // path to file
 struct Estadisticas_Acc {
     double acomuladorDeAceptadosNormal;
     double acomuladorDeAceptadosCustom;
-    double acumuladorNumApplys;
-};
+    double cont_total_rmsd_vs_actual_acc;
+    double media;
+    double numApply;
+} estadisticasStage4[3];
 
-/* POSIBILIDAD UTILIZANDO UN ACUMULADOR EXTERNO EN CLASSIC AB INITIO
- Estadisticas_Acc TrialMover::imprimir_estadisticas(Estadisticas_Acc stats_anteriores)
- {
- acomuladorDeAceptadosNormal = acomuladorDeAceptadosNormal + stats_anteriores.acomuladorDeAceptadosNormal;
- 
- std::cout << "============================================" << std::endl;
- std::cout << "================ FINAL STATS ===============" << std::endl;
- 
- if (cont_total_rmsd_vs_actual_acc > 0) {
- std::cout << "media del rmsd vs actual: " << (rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc) << std::endl;
- }
- std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
- if (acomuladorDeAceptadosNormal > 0){
- std::cout <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
- }
- if (acomuladorDeAceptadosCustom > 0){
- std::cout <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/numApplys <<"%" << std::endl;
- //::cout <<"número total de no aceptados (Custom): " << (soluciones_anteriores.size() - acomuladorDeAceptadosCustom) << std::endl;
- }
- std::cout << "============================================" << std::endl;
- 
- Estadisticas_Acc actuales;
- actuales.acomuladorDeAceptadosNormal = acomuladorDeAceptadosNormal;
- return actuales;
- }*/
+void TrialMover::setEstadisticasStage4(int index, int numApplys){
+    double media = 0;
+    double normal = 0;
+    double custom = 0;
+    double totalRmsdVsActual = 0;
+    if (cont_total_rmsd_vs_actual_acc > 0) {
+        totalRmsdVsActual = cont_total_rmsd_vs_actual_acc;
+        media = (rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc);
+    }else{
+        media = 0;
+    }
+    if (acomuladorDeAceptadosNormal > 0){
+        normal = (acomuladorDeAceptadosNormal * 100)/numApplys;
+    } else {
+        normal = 0;
+    }
+    if (acomuladorDeAceptadosCustom > 0){
+        custom = (acomuladorDeAceptadosCustom * 100)/numApplys ;
+    } else {
+        custom = 0;
+    }
+/*    std::cout << "valor de normal " << normal << std::endl;
+    std::cout << "valor de custom " << custom << std::endl;
+    std::cout << "valor de media " << media << std::endl;
+    std::cout << "valor de totalRMSD_VS_ACTUAL " << totalRmsdVsActual << std::endl;
+    std::cout << "valor numApplys " << numApplys << std::endl;*/
+    estadisticasStage4[index].acomuladorDeAceptadosNormal = normal;
+    estadisticasStage4[index].acomuladorDeAceptadosCustom = custom;
+    estadisticasStage4[index].media = media;
+    estadisticasStage4[index].cont_total_rmsd_vs_actual_acc = totalRmsdVsActual;
+    estadisticasStage4[index].numApply = numApplys;
+
+}
+void TrialMover::imprimirEstadisticasStage4(){
+    int tamanoStage4 = 3;
+    double media = 0;
+    double normal = 0;
+    double custom = 0;
+    double numApplys = 0;
+    double totalRmsdVsActual = 0;
+    std::cout << "============================================" << std::endl;
+    std::cout << "================ FINAL STATS ===============" << std::endl;
+    std::cout << "================  STAGE - 4 ================" << std::endl;
+    
+    for (int index=0; index < tamanoStage4; index++) {
+        media = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
+        totalRmsdVsActual = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
+        normal = estadisticasStage4[index].acomuladorDeAceptadosNormal;
+        custom = estadisticasStage4[index].acomuladorDeAceptadosCustom;
+        numApplys = estadisticasStage4[index].numApply;
+        std::cout << "================ ITERATE - " << (index + 1) <<" ===============" << std::endl;
+        if (totalRmsdVsActual > 0) {
+            std::cout << "checkeos totales rmsd vs actual: " << totalRmsdVsActual << std::endl;
+            std::cout << "media del rmsd vs actual: " << media << std::endl;
+        }else{
+            std::cout << "media del rmsd vs actual: 0" << std::endl;
+        }
+        std::cout <<"Número de veces que se llama Apply: " << numApplys<< std::endl;
+        if (normal > 0){
+            std::cout <<"Porcentaje total de aceptados (Normal): "<< normal<<"%" << std::endl;
+        } else {
+            std::cout <<"Porcentaje total de aceptados (Normal): 0"<< std::endl;
+        }
+        if (custom > 0){
+            std::cout <<"Porcentaje total de aceptados (Custom): "<< custom <<"%" << std::endl;
+        } else {
+            std::cout <<"Porcentaje total de aceptados (Custom): 0"<< std::endl;
+        }
+    }
+    std::cout << "============================================" << std::endl;
+}
 
 void TrialMover::inicializarSolucionesAnteriores(){
     paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     std::vector<std::string>::iterator it;
-    std::vector<pose::PoseOP>::iterator it_pose;
     for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
         std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
         pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
@@ -351,7 +398,7 @@ void TrialMover::apply( pose::Pose & pose )
         for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
             //Para cada POSE de entrada se calcula la distancia RMSD a la actual
             core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
-            //std::cout << "Valor del rmsd_vs_actual: " <<rmsd_vs_actual<< std::endl;
+            std::cout << "Valor del rmsd_vs_actual: " <<rmsd_vs_actual<< std::endl;
             rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
             cont_total_rmsd_vs_actual_acc += 1;
             
@@ -361,7 +408,7 @@ void TrialMover::apply( pose::Pose & pose )
         }
         //Solo se acepta el reemplazo si todas las soluciones son mayor
         //que el actual
-        if (reemplazo_rechazado == false) {
+        if (accepted_move == 1 && reemplazo_rechazado == false) {
             acomuladorDeAceptadosCustom +=1;
         }else {
             pose = pose_anterior;

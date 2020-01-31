@@ -879,6 +879,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	// fragment::FragmentIO().write("stage1_frags_classic.dat",*frag_mover->fragments());
 
 	Size j;
+    derived->inicializarSolucionesAnteriores();
 	for ( j = 1; j <= stage1_cycles(); ++j ) {
 		trial->apply( pose ); // apply a large fragment insertion, accept with MC boltzmann probability
 		if ( done(pose) ) {
@@ -889,8 +890,8 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	}
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
+    
     derived->imprimir_estadisticas(stage1_cycles(), 1);
-    derived->inicializarSolucionesAnteriores();
     derived->resetAcomuladores();
     
 	tr.Warning << "extended chain may still remain after " << stage1_cycles() << " cycles!" << std::endl;
@@ -912,8 +913,8 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    //derived->inicializarSolucionesAnteriores();
     derived->imprimir_estadisticas(nr_cycles, 2);
-    derived->inicializarSolucionesAnteriores();
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
     
@@ -955,6 +956,8 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 	}
 
 	moves::TrialMoverOP trials = trial_large();
+    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    derived->inicializarSolucionesAnteriores();
 	int iteration = 1;
 	for ( int lct1 = 1; lct1 <= nloop1; lct1++ ) {
 		if ( lct1 > 1 ) trials = trial_small(); //only with short_insert_region!
@@ -989,8 +992,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->inicializarSolucionesAnteriores();
+
     derived->imprimir_estadisticas(stage3_cycles()*10, 3);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
@@ -1034,6 +1036,8 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
 			}
 
 			tr.Debug << "start " << stage4_cycles() << " cycles" << std::endl;
+            derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+            derived->inicializarSolucionesAnteriores();
 			moves::RepeatMover( stage4_mover( pose, kk, trials ), stage4_cycles() ).apply(pose);
 			tr.Debug << "finished" << std::endl;
 			recover_low( pose, STAGE_4 );
@@ -1042,13 +1046,12 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
           
             // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
             // estadisticas de cada iteracion en el loop de la fase stage4
-            derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-            derived->inicializarSolucionesAnteriores();
-            derived->imprimir_estadisticas(stage4_cycles(), 4);
+
+            //derived->imprimir_estadisticas(stage4_cycles(), 4);
+            derived->setEstadisticasStage4(kk-1, stage4_cycles());
             derived->resetAcomuladores();
         }
 		get_checkpoints().debug( get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk),  current_scorefxn()( pose ) );
-
 		//don't store last structure since it will be exactly the same as the final structure delivered back via apply
 		//  if( kk < nloop_stage4 ) // <-- this line was missing although the comment above was existant.
 		//   structure_store().push_back( mc_->lowest_score_pose() );
@@ -1057,7 +1060,9 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
  
       
     }  // loop kk
-
+    moves::TrialMoverOP trials;
+    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    derived->imprimirEstadisticasStage4();
 	if ( option[corrections::score::cenrot] ) {
 		//switch to cenrot model
 		tr.Debug << "switching to cenrot model ..." << std::endl;
