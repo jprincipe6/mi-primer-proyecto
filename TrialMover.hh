@@ -213,6 +213,7 @@ public:
     
     void imprimir_estadisticas(int numApplys, int stage);
     void resetAcomuladores();
+    void inicializarSolucionesAnteriores();
     
 protected:
     std::vector<core::pose::PoseOP> soluciones_anteriores;

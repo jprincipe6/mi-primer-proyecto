@@ -254,6 +254,17 @@ struct Estadisticas_Acc {
  return actuales;
  }*/
 
+void TrialMover::inicializarSolucionesAnteriores(){
+    paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
+    std::vector<std::string>::iterator it;
+    std::vector<pose::PoseOP>::iterator it_pose;
+    for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+        std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+        pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+        soluciones_anteriores.push_back(ejecucion_previa);
+    }
+}
+
 void TrialMover::imprimir_estadisticas(int numApplys, int stage)
 {
     
@@ -288,6 +299,8 @@ void TrialMover::resetAcomuladores(){
     cont_total_rmsd_vs_actual_acc = 0;
 
 }
+
+
 /// @brief:
 ///  the apply function for a trial
 /// @details:
@@ -338,6 +351,7 @@ void TrialMover::apply( pose::Pose & pose )
         for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
             //Para cada POSE de entrada se calcula la distancia RMSD a la actual
             core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+            //std::cout << "Valor del rmsd_vs_actual: " <<rmsd_vs_actual<< std::endl;
             rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
             cont_total_rmsd_vs_actual_acc += 1;
             
@@ -351,13 +365,13 @@ void TrialMover::apply( pose::Pose & pose )
             acomuladorDeAceptadosCustom +=1;
         }else {
             pose = pose_anterior;
-            std::cout << "Valor del normal: " << acomuladorDeAceptadosNormal<< std::endl;
+            //std::cout << "Valor del normal: " << acomuladorDeAceptadosNormal<< std::endl;
         }
     } else {
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
-            std::cout << "No hay soluciones anteriores (.pdb)"<< std::endl;
+            //std::cout << "No hay soluciones anteriores (.pdb)"<< std::endl;
         }
         
     }
