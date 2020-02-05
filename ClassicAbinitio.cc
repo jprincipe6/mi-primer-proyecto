@@ -482,6 +482,11 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
         
         // NOTA: aquí podemos modificar el nombre del pdb FINAL
         int variable_nombre = get_paths_pdbs_from_dir("./soluciones_1elwA/").size() + 1;
+        
+        // a largo plazo: imprimir en un fichero los valores de nombre de pdb - score - rmsd
+        //fprint(fichero, "solucion_anterior_"+std::to_string(variable_nombre)+".pdb \t" + score + "\t" + rmsd + "\n");
+
+        
         pose.dump_pdb("./soluciones_1elwA/solucion_anterior_"+std::to_string(variable_nombre)+".pdb");
 	}
 
@@ -885,6 +890,11 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 		if ( done(pose) ) {
 			tr.Info << "Replaced extended chain after " << j << " cycles." << std::endl;
 			mc().reset( pose ); // make sure that we keep the final structure
+            
+            
+            derived->imprimir_estadisticas(stage1_cycles(), 1);
+            derived->resetAcomuladores();
+            
 			return true;
 		}
 	}

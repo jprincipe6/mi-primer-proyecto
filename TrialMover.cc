@@ -36,6 +36,7 @@
 #include <vector>
 #include <sys/types.h>
 #include <dirent.h>
+#include <fstream>      // std::ofstream
 
 std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
     std::vector<std::string> results;
@@ -67,7 +68,7 @@ namespace moves {
 static basic::Tracer tr( "protocols.TrialMover" );
 
 using namespace core;
-const char *path_input = "/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/soluciones_1elwA";
+const char *path_input = "./soluciones_1elwA";
 MonteCarloUtil::MonteCarloUtil() : mc_(/* 0 */)
 {
     
@@ -272,7 +273,7 @@ void TrialMover::imprimirEstadisticasStage4(){
     double totalRmsdVsActual = 0;
     std::cout << "============================================" << std::endl;
     std::cout << "================ FINAL STATS ===============" << std::endl;
-    std::cout << "================  STAGE - 4 ================" << std::endl;
+    std::cout << "================ STAGE - 4 =================" << std::endl;
     
     for (int index=0; index < tamanoStage4; index++) {
         media = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
@@ -291,12 +292,12 @@ void TrialMover::imprimirEstadisticasStage4(){
         if (normal > 0){
             std::cout <<"Porcentaje total de aceptados (Normal): "<< normal<<"%" << std::endl;
         } else {
-            std::cout <<"Porcentaje total de aceptados (Normal): 0"<< std::endl;
+            std::cout <<"Porcentaje total de aceptados (Normal): 0%"<< std::endl;
         }
         if (custom > 0){
             std::cout <<"Porcentaje total de aceptados (Custom): "<< custom <<"%" << std::endl;
         } else {
-            std::cout <<"Porcentaje total de aceptados (Custom): 0"<< std::endl;
+            std::cout <<"Porcentaje total de aceptados (Custom): 0%"<< std::endl;
         }
     }
     std::cout << "============================================" << std::endl;
@@ -381,7 +382,7 @@ void TrialMover::apply( pose::Pose & pose )
     //  CODIGO ANTERIOR:  bool accepted_move = mc_->boltzmann( pose, mover_->type() );
     
     
-    core::Real umbral_limite = 100;
+    core::Real umbral_limite = 15;
     bool accepted_move = false;
     std::vector<std::string>::iterator it;
         
@@ -398,7 +399,7 @@ void TrialMover::apply( pose::Pose & pose )
         for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
             //Para cada POSE de entrada se calcula la distancia RMSD a la actual
             core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
-            std::cout << "Valor del rmsd_vs_actual: " <<rmsd_vs_actual<< std::endl;
+            //std::cout << "Valor del rmsd_vs_actual: " <<rmsd_vs_actual<< std::endl;
             rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
             cont_total_rmsd_vs_actual_acc += 1;
             
