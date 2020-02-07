@@ -37,6 +37,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fstream>      // std::ofstream
+#include <iostream>
 
 std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
     std::vector<std::string> results;
@@ -271,36 +272,44 @@ void TrialMover::imprimirEstadisticasStage4(){
     double custom = 0;
     double numApplys = 0;
     double totalRmsdVsActual = 0;
-    std::cout << "============================================" << std::endl;
-    std::cout << "================ FINAL STATS ===============" << std::endl;
-    std::cout << "================ STAGE - 4 =================" << std::endl;
-    
-    for (int index=0; index < tamanoStage4; index++) {
-        media = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
-        totalRmsdVsActual = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
-        normal = estadisticasStage4[index].acomuladorDeAceptadosNormal;
-        custom = estadisticasStage4[index].acomuladorDeAceptadosCustom;
-        numApplys = estadisticasStage4[index].numApply;
-        std::cout << "================ ITERATE - " << (index + 1) <<" ===============" << std::endl;
-        if (totalRmsdVsActual > 0) {
-            std::cout << "checkeos totales rmsd vs actual: " << totalRmsdVsActual << std::endl;
-            std::cout << "media del rmsd vs actual: " << media << std::endl;
-        }else{
-            std::cout << "media del rmsd vs actual: 0" << std::endl;
+    std::ofstream myfile;
+    myfile.open ("salida_4.txt", std::ios::out | std::ios::app );
+    if (myfile.is_open())
+    {
+        myfile << "============================================" << std::endl;
+        myfile << "================ FINAL STATS ===============" << std::endl;
+        myfile << "================ STAGE - 4 =================" << std::endl;
+        
+        for (int index=0; index < tamanoStage4; index++) {
+            media = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
+            totalRmsdVsActual = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
+            normal = estadisticasStage4[index].acomuladorDeAceptadosNormal;
+            custom = estadisticasStage4[index].acomuladorDeAceptadosCustom;
+            numApplys = estadisticasStage4[index].numApply;
+            myfile << "================ ITERATE - " << (index + 1) <<" ===============" << std::endl;
+            if (totalRmsdVsActual > 0) {
+                myfile << "checkeos totales rmsd vs actual: " << totalRmsdVsActual << std::endl;
+                myfile << "media del rmsd vs actual: " << media << std::endl;
+            }else{
+                myfile << "media del rmsd vs actual: 0" << std::endl;
+            }
+            myfile <<"Número de veces que se llama Apply: " << numApplys<< std::endl;
+            if (normal > 0){
+                myfile <<"Porcentaje total de aceptados (Normal): "<< normal<<"%" << std::endl;
+            } else {
+                myfile <<"Porcentaje total de aceptados (Normal): 0%"<< std::endl;
+            }
+            if (custom > 0){
+                myfile <<"Porcentaje total de aceptados (Custom): "<< custom <<"%" << std::endl;
+            } else {
+                myfile <<"Porcentaje total de aceptados (Custom): 0%"<< std::endl;
+            }
         }
-        std::cout <<"Número de veces que se llama Apply: " << numApplys<< std::endl;
-        if (normal > 0){
-            std::cout <<"Porcentaje total de aceptados (Normal): "<< normal<<"%" << std::endl;
-        } else {
-            std::cout <<"Porcentaje total de aceptados (Normal): 0%"<< std::endl;
-        }
-        if (custom > 0){
-            std::cout <<"Porcentaje total de aceptados (Custom): "<< custom <<"%" << std::endl;
-        } else {
-            std::cout <<"Porcentaje total de aceptados (Custom): 0%"<< std::endl;
-        }
+        myfile << "============================================" << std::endl;
+    }else {
+        std::cout << "Unable to open file";
     }
-    std::cout << "============================================" << std::endl;
+
 }
 
 void TrialMover::inicializarSolucionesAnteriores(){
@@ -315,29 +324,37 @@ void TrialMover::inicializarSolucionesAnteriores(){
 
 void TrialMover::imprimir_estadisticas(int numApplys, int stage)
 {
+    std::ofstream myfile;
+    myfile.open ("salida_"+std::to_string(stage)+".txt", std::ios::out | std::ios::app );
     
-    std::cout << "============================================" << std::endl;
-    std::cout << "================ FINAL STATS ===============" << std::endl;
-    std::cout << "================ STAGE - " << stage <<" =================" << std::endl;
-    
-    if (cont_total_rmsd_vs_actual_acc > 0) {
-        std::cout << "checkeos totales rmsd vs actual: " << (cont_total_rmsd_vs_actual_acc) << std::endl;
-        std::cout << "media del rmsd vs actual: " << (rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc) << std::endl;
-    }else{
-        std::cout << "media del rmsd vs actual: 0" << std::endl;
+    if (myfile.is_open())
+    {
+        myfile << "============================================" << std::endl;
+        myfile << "================ FINAL STATS ===============" << std::endl;
+        myfile << "================ STAGE - " << stage <<" =================" << std::endl;
+        
+        if (cont_total_rmsd_vs_actual_acc > 0) {
+            myfile << "checkeos totales rmsd vs actual: " << (cont_total_rmsd_vs_actual_acc) << std::endl;
+            myfile << "media del rmsd vs actual: " << (rmsd_vs_actual_acc / cont_total_rmsd_vs_actual_acc) << std::endl;
+        }else{
+            myfile << "media del rmsd vs actual: 0" << std::endl;
+        }
+        std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
+        if (acomuladorDeAceptadosNormal > 0){
+            myfile <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
+        } else {
+            myfile <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
+        }
+        if (acomuladorDeAceptadosCustom > 0){
+            myfile <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/numApplys <<"%" << std::endl;
+        } else {
+            myfile <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
+        }
+        myfile << "============================================" << std::endl;
+    }else {
+        std::cout << "Unable to open file";
     }
-    std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
-    if (acomuladorDeAceptadosNormal > 0){
-        std::cout <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
-    } else {
-        std::cout <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
-    }
-    if (acomuladorDeAceptadosCustom > 0){
-        std::cout <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/numApplys <<"%" << std::endl;
-    } else {
-        std::cout <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
-    }
-    std::cout << "============================================" << std::endl;
+
     
 }
 

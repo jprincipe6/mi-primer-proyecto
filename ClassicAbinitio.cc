@@ -892,7 +892,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 			mc().reset( pose ); // make sure that we keep the final structure
             
             
-            derived->imprimir_estadisticas(stage1_cycles(), 1);
+            derived->imprimir_estadisticas(j, 1);
             derived->resetAcomuladores();
             
 			return true;
