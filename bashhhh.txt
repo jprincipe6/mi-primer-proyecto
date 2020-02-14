@@ -1,0 +1,11 @@
+export PATH=$PATH:/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/main/source/bin/
+export PATH=$PATH:/usr/local/Cellar/gnuplot/5.2.8/bin/gnuplot
+export PATH=$PATH:~/Workspace
+
+
+alias ws="cd /Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/main/source/"
+alias demo="cd /Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio/"
+alias compilar="cd /Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/main/source && python scons.py mode=release -j8 ./bin/AbinitioRelax.defau$
+alias moves="cd /Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/main/source/src/protocols/moves"
+alias repo="cd /Users/principe/Documents/primer-proyecto-git"
+alias r_abinitio=" cd /Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/main/source/src/protocols/abinitio"
