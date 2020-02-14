@@ -225,6 +225,7 @@ protected:
     int cont_total_rmsd_vs_actual_acc;
     int acomuladorDeAceptadosCustom;
     int acomuladorDeAceptadosNormal;
+    double umbralLimite;
 	MoverOP mover_;
 	MonteCarloOP mc_;
 	MoverStatistics stats_;

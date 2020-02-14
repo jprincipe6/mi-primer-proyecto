@@ -143,7 +143,19 @@ stats_type_( all_stats )
 {}
 
 
-
+core::Real getUmbralLimite(){
+    std::ifstream myfile;
+    std::string line;
+    std::string value;
+    double umbral = 0;
+    myfile.open ("./umbral/umbral.txt", std::ios::in);
+    while (getline(myfile, line)) {
+        std::string str2 = line.substr (8,line.size());
+        value = str2;
+    }
+    umbral  = std::stod(value);
+    return umbral;
+}
 // constructor with arguments
 TrialMover::TrialMover( MoverOP mover_in, MonteCarloOP mc_in ) :
 start_weight_( 0.0 ),
@@ -169,6 +181,8 @@ stats_type_( all_stats )
     paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     acomuladorDeAceptadosCustom = 0;
     acomuladorDeAceptadosNormal = 0;
+    
+    umbralLimite = getUmbralLimite();
     
     for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
         std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
@@ -313,6 +327,7 @@ void TrialMover::imprimirEstadisticasStage4(){
 }
 
 void TrialMover::inicializarSolucionesAnteriores(){
+    umbralLimite = getUmbralLimite();
     paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     std::vector<std::string>::iterator it;
     for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
@@ -399,10 +414,9 @@ void TrialMover::apply( pose::Pose & pose )
     //  CODIGO ANTERIOR:  bool accepted_move = mc_->boltzmann( pose, mover_->type() );
     
     
-    core::Real umbral_limite = 15;
     bool accepted_move = false;
     std::vector<std::string>::iterator it;
-        
+    std::cout << umbralLimite<< std::endl;
     if (soluciones_anteriores.size() > 0){
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
@@ -416,11 +430,10 @@ void TrialMover::apply( pose::Pose & pose )
         for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
             //Para cada POSE de entrada se calcula la distancia RMSD a la actual
             core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
-            //std::cout << "Valor del rmsd_vs_actual: " <<rmsd_vs_actual<< std::endl;
             rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
             cont_total_rmsd_vs_actual_acc += 1;
             
-            if (accepted_move == 1 && rmsd_vs_actual < umbral_limite) {
+            if (accepted_move == 1 && rmsd_vs_actual < umbralLimite) {
                 reemplazo_rechazado = true;
             }
         }
@@ -430,13 +443,11 @@ void TrialMover::apply( pose::Pose & pose )
             acomuladorDeAceptadosCustom +=1;
         }else {
             pose = pose_anterior;
-            //std::cout << "Valor del normal: " << acomuladorDeAceptadosNormal<< std::endl;
         }
     } else {
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
-            //std::cout << "No hay soluciones anteriores (.pdb)"<< std::endl;
         }
         
     }
