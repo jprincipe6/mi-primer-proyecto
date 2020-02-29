@@ -39,6 +39,8 @@
 #include <fstream>      // std::ofstream
 #include <iostream>
 
+#include <boost/numeric/conversion/cast.hpp>
+
 std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
     std::vector<std::string> results;
     DIR* dirFile = opendir(path);
@@ -184,6 +186,8 @@ stats_type_( all_stats )
     
     umbralLimite = getUmbralLimite();
     
+    //ultima_solucion_disponible = paths_soluciones_pdbs.size();
+
     for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
         std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
         PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
@@ -416,7 +420,7 @@ void TrialMover::apply( pose::Pose & pose )
     
     bool accepted_move = false;
     std::vector<std::string>::iterator it;
-    std::cout << umbralLimite<< std::endl;
+    //std::cout << umbralLimite<< std::endl;
     if (soluciones_anteriores.size() > 0){
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
@@ -427,7 +431,10 @@ void TrialMover::apply( pose::Pose & pose )
             acomuladorDeAceptadosNormal += 1;
         }
         
+        
         for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
+        //for(int idx_pose = 0; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
+        //    PoseOP current_pose = soluciones_anteriores[idx_pose];
             //Para cada POSE de entrada se calcula la distancia RMSD a la actual
             core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
             rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;

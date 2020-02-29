@@ -82,7 +82,9 @@
 #include <protocols/moves/MonteCarlo.hh>
 #include <utility/vector0.hh>
 #include <utility/vector1.hh>
-
+#include <chrono>
+#include <iostream>
+#include <iomanip>
 
 static basic::Tracer tr( "protocols.abinitio" );
 
@@ -160,6 +162,10 @@ ClassicAbinitio::ClassicAbinitio(
 	close_chbrk_ = false;
 
 	stage4_cycles_pack_rate_ = 0.25;
+  /*  ultima_solucion_disponible = get_paths_pdbs_from_dir("./soluciones_1elwA/").size();
+    if (ultima_solucion_disponible > 0) {
+          ultima_solucion_disponible += -1;
+      }*/
 }
 
 ClassicAbinitio::ClassicAbinitio(
@@ -217,6 +223,10 @@ ClassicAbinitio::ClassicAbinitio(
 	close_chbrk_ = false;
 
 	stage4_cycles_pack_rate_ = 0.25;
+ /*   ultima_solucion_disponible = get_paths_pdbs_from_dir("./soluciones_1elwA/").size();
+    if (ultima_solucion_disponible > 0) {
+          ultima_solucion_disponible += -1;
+      }*/
 }
 
 /// @details Call parent's copy constructor and perform a shallow
@@ -260,6 +270,10 @@ ClassicAbinitio::ClassicAbinitio( ClassicAbinitio const & src ) :
 	bSkipStage4_ = src.bSkipStage4_;
 	bSkipStage5_ = src.bSkipStage5_;
 	recover_low_stages_ = src.recover_low_stages_;
+   /* ultima_solucion_disponible = get_paths_pdbs_from_dir("./soluciones_1elwA/").size();
+    if (ultima_solucion_disponible > 0) {
+        ultima_solucion_disponible += -1;
+    }*/
 }
 
 /// @brief Explicit destructor is needed to destroy all the OPs
@@ -284,10 +298,62 @@ ClassicAbinitio::clone() const
 	return utility::pointer::make_shared< ClassicAbinitio >( *this );
 }
 
+std::string beautify_duration(std::chrono::seconds input_seconds)
+{
+    using namespace std::chrono;
+    typedef duration<int, std::ratio<86400>> days;
+    auto d = duration_cast<days>(input_seconds);
+    input_seconds -= d;
+    auto h = duration_cast<hours>(input_seconds);
+    input_seconds -= h;
+    auto m = duration_cast<minutes>(input_seconds);
+    input_seconds -= m;
+    auto s = duration_cast<seconds>(input_seconds);
+
+    auto dc = d.count();
+    auto hc = h.count();
+    auto mc = m.count();
+    auto sc = s.count();
+
+    std::stringstream ss;
+    ss.fill('0');
+    if (dc) {
+        ss << d.count() << "d";
+    }
+    if (dc || hc) {
+        if (dc) { ss << std::setw(2); } //pad if second set of numbers
+        ss << h.count() << "h";
+    }
+    if (dc || hc || mc) {
+        if (dc || hc) { ss << std::setw(2); }
+        ss << m.count() << "m";
+    }
+    if (dc || hc || mc || sc) {
+        if (dc || hc || mc) { ss << std::setw(2); }
+        ss << s.count() << 's';
+    }
+
+    return ss.str();
+}
+
+void imprimirTiemposPorNStructs(std::chrono::seconds time){
+    std::ofstream myfile;
+    myfile.open ("salida_time.txt", std::ios::out | std::ios::app );
+    
+    if (myfile.is_open())
+    {
+        myfile << beautify_duration(time) << std::endl;
+    }else {
+        std::cout << "Unable to open file";
+    }
+}
+
 void ClassicAbinitio::apply( pose::Pose & pose ) {
 	using namespace moves;
 	using namespace scoring;
 	using namespace scoring::constraints;
+
+    std::chrono::seconds sumGlobal;
 
 	Parent::apply( pose );
 	if ( option[ OptionKeys::run::dry_run ]() ) return;
@@ -297,7 +363,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 
 	bool success( true );
 	total_trials_ = 0;
-
+    auto t1 = std::chrono::high_resolution_clock::now();
 	if ( !bSkipStage1_ ) {
 		PROF_START( basic::STAGE1 );
 		clock_t starttime = clock();
@@ -488,8 +554,11 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 
         
         pose.dump_pdb("./soluciones_1elwA/solucion_anterior_"+std::to_string(variable_nombre)+".pdb");
+        auto t2 = std::chrono::high_resolution_clock::now();
+        sumGlobal = (std::chrono::duration_cast<std::chrono::seconds>(t2-t1));
+        imprimirTiemposPorNStructs(sumGlobal);
 	}
-
+    
 	if ( !bSkipStage5_ ) {
 
 		// part 5 ------------------------------------------
@@ -885,6 +954,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 
 	Size j;
     derived->inicializarSolucionesAnteriores();
+   // derived->ultima_solucion_disponible = ultima_solucion_disponible;
 	for ( j = 1; j <= stage1_cycles(); ++j ) {
 		trial->apply( pose ); // apply a large fragment insertion, accept with MC boltzmann probability
 		if ( done(pose) ) {
@@ -924,6 +994,8 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
     //derived->inicializarSolucionesAnteriores();
+    //derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
     derived->imprimir_estadisticas(nr_cycles, 2);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
@@ -968,6 +1040,8 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 	moves::TrialMoverOP trials = trial_large();
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
     derived->inicializarSolucionesAnteriores();
+    //derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
 	int iteration = 1;
 	for ( int lct1 = 1; lct1 <= nloop1; lct1++ ) {
 		if ( lct1 > 1 ) trials = trial_small(); //only with short_insert_region!
@@ -1048,6 +1122,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
 			tr.Debug << "start " << stage4_cycles() << " cycles" << std::endl;
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
             derived->inicializarSolucionesAnteriores();
+            //derived->ultima_solucion_disponible = ultima_solucion_disponible;
 			moves::RepeatMover( stage4_mover( pose, kk, trials ), stage4_cycles() ).apply(pose);
 			tr.Debug << "finished" << std::endl;
 			recover_low( pose, STAGE_4 );

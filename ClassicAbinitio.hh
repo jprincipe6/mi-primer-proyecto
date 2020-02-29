@@ -451,6 +451,7 @@ public:
 	bool bSkipStage4_;
 	bool bSkipStage5_;
 
+    int ultima_solucion_disponible;
 	utility::vector1< StageID > recover_low_stages_;
 
 private:

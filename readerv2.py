@@ -108,7 +108,16 @@ class Record():
         
 def main(filesToProcess, posiciones):
     print(posiciones)
-    data_positions = [int(x) for x in posiciones.split(",")]
+    data_positions = []
+    data_interval = []
+    if(("-" in posiciones)):
+        data_interval = [int(x) for x in posiciones.split("-")]
+        pos_init = data_interval[0]
+        pos_end = data_interval[1]
+        for pos in range (pos_init,pos_end+1):
+            data_positions.append(pos)
+    else:
+        data_positions = [int(x) for x in posiciones.split(",")]
     record = Record()
     cnt = 1
     for filepath in filesToProcess:

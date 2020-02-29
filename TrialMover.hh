@@ -216,6 +216,10 @@ public:
     void inicializarSolucionesAnteriores();
     void setEstadisticasStage4(int index, int numApplys);
     void imprimirEstadisticasStage4();
+    
+public:
+    int ultima_solucion_disponible;
+
 protected:
     std::vector<core::pose::PoseOP> soluciones_anteriores;
     std::vector<std::string> paths_soluciones_pdbs;
