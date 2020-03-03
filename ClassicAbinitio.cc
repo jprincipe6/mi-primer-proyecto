@@ -298,51 +298,15 @@ ClassicAbinitio::clone() const
 	return utility::pointer::make_shared< ClassicAbinitio >( *this );
 }
 
-std::string beautify_duration(std::chrono::seconds input_seconds)
-{
-    using namespace std::chrono;
-    typedef duration<int, std::ratio<86400>> days;
-    auto d = duration_cast<days>(input_seconds);
-    input_seconds -= d;
-    auto h = duration_cast<hours>(input_seconds);
-    input_seconds -= h;
-    auto m = duration_cast<minutes>(input_seconds);
-    input_seconds -= m;
-    auto s = duration_cast<seconds>(input_seconds);
-
-    auto dc = d.count();
-    auto hc = h.count();
-    auto mc = m.count();
-    auto sc = s.count();
-
-    std::stringstream ss;
-    ss.fill('0');
-    if (dc) {
-        ss << d.count() << "d";
-    }
-    if (dc || hc) {
-        if (dc) { ss << std::setw(2); } //pad if second set of numbers
-        ss << h.count() << "h";
-    }
-    if (dc || hc || mc) {
-        if (dc || hc) { ss << std::setw(2); }
-        ss << m.count() << "m";
-    }
-    if (dc || hc || mc || sc) {
-        if (dc || hc || mc) { ss << std::setw(2); }
-        ss << s.count() << 's';
-    }
-
-    return ss.str();
-}
-
-void imprimirTiemposPorNStructs(std::chrono::seconds time){
+//void imprimirTiemposPorNStructs(float time, float t1, float t2){
+void imprimirTiemposPorNStructs(float time){
     std::ofstream myfile;
     myfile.open ("salida_time.txt", std::ios::out | std::ios::app );
     
     if (myfile.is_open())
     {
-        myfile << beautify_duration(time) << std::endl;
+//        myfile  << t2 << " - " << t1 <<" = "<< time << std::endl;
+        myfile  << time << std::endl;
     }else {
         std::cout << "Unable to open file";
     }
@@ -555,8 +519,12 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
         
         pose.dump_pdb("./soluciones_1elwA/solucion_anterior_"+std::to_string(variable_nombre)+".pdb");
         auto t2 = std::chrono::high_resolution_clock::now();
-        sumGlobal = (std::chrono::duration_cast<std::chrono::seconds>(t2-t1));
-        imprimirTiemposPorNStructs(sumGlobal);
+        
+        float tt1 = std::chrono::duration_cast<std::chrono::seconds>(t1.time_since_epoch()).count();
+        float tt2 = std::chrono::duration_cast<std::chrono::seconds>(t2.time_since_epoch()).count();
+        float f_secs = (tt2-tt1);
+//        imprimirTiemposPorNStructs(f_secs, tt1, tt2);
+        imprimirTiemposPorNStructs(f_secs);
 	}
     
 	if ( !bSkipStage5_ ) {

@@ -431,17 +431,18 @@ void TrialMover::apply( pose::Pose & pose )
             acomuladorDeAceptadosNormal += 1;
         }
         
-        
-        for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
-        //for(int idx_pose = 0; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
-        //    PoseOP current_pose = soluciones_anteriores[idx_pose];
-            //Para cada POSE de entrada se calcula la distancia RMSD a la actual
-            core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
-            rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
-            cont_total_rmsd_vs_actual_acc += 1;
-            
-            if (accepted_move == 1 && rmsd_vs_actual < umbralLimite) {
-                reemplazo_rechazado = true;
+        if(umbralLimite != 0){
+            for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
+            //for(int idx_pose = 0; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
+            //    PoseOP current_pose = soluciones_anteriores[idx_pose];
+            //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
+                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+                rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
+                cont_total_rmsd_vs_actual_acc += 1;
+                if (accepted_move == 1 && rmsd_vs_actual < umbralLimite) {
+                    reemplazo_rechazado = true;
+                    break;
+                }
             }
         }
         //Solo se acepta el reemplazo si todas las soluciones son mayor
