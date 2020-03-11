@@ -224,6 +224,9 @@ protected:
 	//@brief register cmd-line options in option system ( call before core::init::init )
 public:
 	static void register_options();
+    int ultima_solucion_disponible;
+    std::vector<core::pose::PoseOP> soluciones_anteriores;
+    std::vector<std::string> paths_soluciones_pdbs;
 protected:
 	//@brief construct default monto-carlo object
 	virtual void set_default_mc(
@@ -451,7 +454,7 @@ public:
 	bool bSkipStage4_;
 	bool bSkipStage5_;
 
-    int ultima_solucion_disponible;
+
 	utility::vector1< StageID > recover_low_stages_;
 
 private:

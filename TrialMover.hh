@@ -210,8 +210,8 @@ public:
 	) override;
 	friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
 
-    
     void imprimir_estadisticas(int numApplys, int stage);
+
     void resetAcomuladores();
     void inicializarSolucionesAnteriores();
     void setEstadisticasStage4(int index, int numApplys);
@@ -219,9 +219,9 @@ public:
     
 public:
     int ultima_solucion_disponible;
-
-protected:
     std::vector<core::pose::PoseOP> soluciones_anteriores;
+    int countApplys;
+protected:
     std::vector<std::string> paths_soluciones_pdbs;
     
     
