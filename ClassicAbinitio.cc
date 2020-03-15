@@ -324,7 +324,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
     /** Cambiar a una funcion cuando se pueda */
     
     /** QUITAR CUANDO ESTE CODIGO SE INICIE En AbrelaxApplication */
-     std::ifstream myfile;
+    /* std::ifstream myfile;
      std::string line;
      std::string value;
      double umbralLimite = 0;
@@ -343,7 +343,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
                 pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
                 soluciones_anteriores.push_back(ejecucion_previa);
             }
-        }
+        }*/
      
      /* fin de inicializar soluciones anteriores */
     std::chrono::seconds sumGlobal;
@@ -943,25 +943,24 @@ bool hConvergenceCheck::operator() ( const core::pose::Pose & pose ) {
 bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	AllResiduesChanged done( pose, brute_move_large()->insert_map(), *movemap() );
 	moves::MoverOP trial( stage1_mover( pose, trial_large() ) );
-    //derived = boost::dynamic_pointer_cast<protocols::moves::TrialMoverOP>(trial);
+//    derived = boost::dynamic_pointer_cast<protocols::moves::TrialMoverOP>(trial);
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
     
 	// FragmentMoverOP frag_mover = brute_move_large_;
 	// fragment::FragmentIO().write("stage1_frags_classic.dat",*frag_mover->fragments());
 
 	Size j;
-    derived->soluciones_anteriores = soluciones_anteriores;
+//    derived->soluciones_anteriores = soluciones_anteriores;
 
-    //derived->inicializarSolucionesAnteriores();
-   // derived->ultima_solucion_disponible = ultima_solucion_disponible;
+    derived->inicializarSolucionesAnteriores();
+//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
 	for ( j = 1; j <= stage1_cycles(); ++j ) {
 		trial->apply( pose ); // apply a large fragment insertion, accept with MC boltzmann probability
 		if ( done(pose) ) {
 			tr.Info << "Replaced extended chain after " << j << " cycles." << std::endl;
 			mc().reset( pose ); // make sure that we keep the final structure
             
-            
-            derived->imprimir_estadisticas(derived->countApplys, 1);
+            derived->imprimir_estadisticas(j, 1);
             derived->resetAcomuladores();
             
 			return true;
@@ -983,21 +982,24 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 
 	//setup cycle
 	moves::SequenceMoverOP cycle( new moves::SequenceMover() );
+
 	if ( apply_large_frags_   ) cycle->add_mover( trial_large_->mover() );
 	if ( short_insert_region_ ) cycle->add_mover( trial_small_->mover() );
 
 	Size nr_cycles = stage2_cycles() / ( short_insert_region_ ? 2 : 1 );
 	moves::TrialMoverOP trials( new moves::TrialMover( cycle, mc_ptr() ) );
+    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    derived->inicializarSolucionesAnteriores();
+//    derived->soluciones_anteriores = soluciones_anteriores;
 	moves::RepeatMover( stage2_mover( pose, trials ), nr_cycles ).apply(pose);
 
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->soluciones_anteriores = soluciones_anteriores;
 
-    //derived->inicializarSolucionesAnteriores();
-    //derived->ultima_solucion_disponible = ultima_solucion_disponible;
 
-    derived->imprimir_estadisticas(derived->countApplys, 2);
+
+//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
+    derived->imprimir_estadisticas(nr_cycles, 2);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
     
@@ -1040,10 +1042,10 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 
 	moves::TrialMoverOP trials = trial_large();
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->soluciones_anteriores = soluciones_anteriores;
+//    derived->soluciones_anteriores = soluciones_anteriores;
 
-    //derived->inicializarSolucionesAnteriores();
-    //derived->ultima_solucion_disponible = ultima_solucion_disponible;
+    derived->inicializarSolucionesAnteriores();
+//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
 
 	int iteration = 1;
 	for ( int lct1 = 1; lct1 <= nloop1; lct1++ ) {
@@ -1084,7 +1086,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
 
-    derived->imprimir_estadisticas(derived->countApplys, 3);
+    derived->imprimir_estadisticas(stage3_cycles()*10, 3);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
 	return true;
@@ -1128,10 +1130,10 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
 
 			tr.Debug << "start " << stage4_cycles() << " cycles" << std::endl;
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-            derived->soluciones_anteriores = soluciones_anteriores;
+//            derived->soluciones_anteriores = soluciones_anteriores;
 
-            //derived->inicializarSolucionesAnteriores();
-            //derived->ultima_solucion_disponible = ultima_solucion_disponible;
+            derived->inicializarSolucionesAnteriores();
+//            derived->ultima_solucion_disponible = ultima_solucion_disponible;
 			moves::RepeatMover( stage4_mover( pose, kk, trials ), stage4_cycles() ).apply(pose);
 			tr.Debug << "finished" << std::endl;
 			recover_low( pose, STAGE_4 );
@@ -1142,7 +1144,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             // estadisticas de cada iteracion en el loop de la fase stage4
 
             //derived->imprimir_estadisticas(stage4_cycles(), 4);
-            derived->setEstadisticasStage4(kk-1, derived->countApplys);
+            derived->setEstadisticasStage4(kk-1, stage4_cycles());
             derived->resetAcomuladores();
         }
 		get_checkpoints().debug( get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk),  current_scorefxn()( pose ) );

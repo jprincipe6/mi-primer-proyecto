@@ -183,13 +183,13 @@ stats_type_( all_stats )
     paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     acomuladorDeAceptadosCustom = 0;
     acomuladorDeAceptadosNormal = 0;
+//    countApplys = 0;
     
+//    inicializarSolucionesAnteriores();
     
-    inicializarSolucionesAnteriores();
-    /*
     umbralLimite = getUmbralLimite();
     
-    //ultima_solucion_disponible = paths_soluciones_pdbs.size();
+//    ultima_solucion_disponible = paths_soluciones_pdbs.size();
 
     if (umbralLimite > 0) {
         for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
@@ -197,7 +197,7 @@ stats_type_( all_stats )
             PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
             soluciones_anteriores.push_back(ejecucion_previa);
         }
-    }*/
+    }
 }
 
 // Copy constructor
