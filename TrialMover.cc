@@ -183,7 +183,7 @@ stats_type_( all_stats )
     paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
     acomuladorDeAceptadosCustom = 0;
     acomuladorDeAceptadosNormal = 0;
-//    countApplys = 0;
+    countApplys = 0;
     
 //    inicializarSolucionesAnteriores();
     
@@ -338,6 +338,7 @@ void TrialMover::imprimirEstadisticasStage4(){
 void TrialMover::inicializarSolucionesAnteriores(){
     umbralLimite = getUmbralLimite();
     if (umbralLimite > 0) {
+        soluciones_anteriores.resize(0);
         paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
         std::vector<std::string>::iterator it;
         for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
@@ -366,7 +367,7 @@ void TrialMover::imprimir_estadisticas(int numApplys, int stage)
         }else{
             myfile << "media del rmsd vs actual: 0" << std::endl;
         }
-        std::cout <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
+        myfile <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
         if (acomuladorDeAceptadosNormal > 0){
             myfile <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
         } else {
@@ -432,6 +433,7 @@ void TrialMover::apply( pose::Pose & pose )
     //std::cout << umbralLimite<< std::endl;
     //Contador de Applys
     countApplys++;
+    std::cout << "Umbral límite: " << umbralLimite << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
     if (soluciones_anteriores.size() > 0){
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
@@ -443,6 +445,7 @@ void TrialMover::apply( pose::Pose & pose )
         }
         
         if(umbralLimite != 0){
+            std::cout << "Tamaño soluciones_anteriores: " << soluciones_anteriores.size()<< std::endl;
             for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
             //for(int idx_pose = 0; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
             //    PoseOP current_pose = soluciones_anteriores[idx_pose];
