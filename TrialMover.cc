@@ -267,12 +267,12 @@ void TrialMover::setEstadisticasStage4(int index, int numApplys){
         media = 0;
     }
     if (acomuladorDeAceptadosNormal > 0){
-        normal = (acomuladorDeAceptadosNormal * 100)/numApplys;
+        normal = (acomuladorDeAceptadosNormal);
     } else {
         normal = 0;
     }
     if (acomuladorDeAceptadosCustom > 0){
-        custom = (acomuladorDeAceptadosCustom * 100)/numApplys ;
+        custom = (acomuladorDeAceptadosCustom);
     } else {
         custom = 0;
     }
@@ -318,14 +318,18 @@ void TrialMover::imprimirEstadisticasStage4(){
             }
             myfile <<"Número de veces que se llama Apply: " << numApplys<< std::endl;
             if (normal > 0){
-                myfile <<"Porcentaje total de aceptados (Normal): "<< normal<<"%" << std::endl;
+                myfile <<"Porcentaje total de aceptados (Normal): "<< (normal * 100)/numApplys<<"%" << std::endl;
+                myfile <<"Numero total de aceptados (Normal): "<< normal <<"%" << std::endl;
             } else {
                 myfile <<"Porcentaje total de aceptados (Normal): 0%"<< std::endl;
+                myfile <<"Numero total de aceptados (Normal): 0%" << std::endl;
             }
             if (custom > 0){
-                myfile <<"Porcentaje total de aceptados (Custom): "<< custom <<"%" << std::endl;
+                myfile <<"Porcentaje total de aceptados (Custom): "<< (custom*100)/numApplys <<"%" << std::endl;
+                myfile <<"Numero total de aceptados (Custom): "<< custom <<"%" << std::endl;
             } else {
                 myfile <<"Porcentaje total de aceptados (Custom): 0%"<< std::endl;
+                myfile <<"Numero total de aceptados (Custom): 0%" << std::endl;
             }
         }
         myfile << "============================================" << std::endl;
@@ -368,15 +372,20 @@ void TrialMover::imprimir_estadisticas(int numApplys, int stage)
             myfile << "media del rmsd vs actual: 0" << std::endl;
         }
         myfile <<"Número de veces que se llama Apply: "<< numApplys << std::endl;
+        std::cout << "NUM APPLYS: " << numApplys << " Aceptados-Normal "<< acomuladorDeAceptadosNormal <<" Aceptados-Custom "<< acomuladorDeAceptadosCustom << std::endl;
         if (acomuladorDeAceptadosNormal > 0){
             myfile <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
+             myfile <<"Numero total de aceptados (Normal): " << acomuladorDeAceptadosNormal  <<"%" << std::endl;
         } else {
             myfile <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
+            myfile <<"Numero total de aceptados (Normal): 0%" << std::endl;
         }
         if (acomuladorDeAceptadosCustom > 0){
             myfile <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/numApplys <<"%" << std::endl;
+            myfile <<"Numero total de aceptados (Custom): " << acomuladorDeAceptadosCustom <<"%" << std::endl;
         } else {
             myfile <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
+            myfile <<"Numero total de aceptados (Custom): 0%" << std::endl;
         }
         myfile << "============================================" << std::endl;
     }else {
@@ -411,7 +420,7 @@ void TrialMover::apply( pose::Pose & pose )
         stats_.add_score( mc_->last_accepted_score() ); ///< initial_last_accepted_score
         stats_.add_score( pose.energies().total_energy() ); ///< initial_pose_score
     }
-    
+    core::pose::Pose pose_anterior = pose;
     /// make the move
     mover_->apply( pose );
     
@@ -438,7 +447,7 @@ void TrialMover::apply( pose::Pose & pose )
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         bool reemplazo_rechazado = false;
-        core::pose::Pose pose_anterior = pose;
+        
         
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;

@@ -27,14 +27,30 @@ class Record():
             self.current_stage = "stage4"
 
     def record_stat(self, line):
-        if ("Normal" in line):
+        if ("Porcentaje total de aceptados (Normal)" in line):
             tokens = line.rstrip().split(" ")
             data = tokens[-1]
             if ("%" in data):
                 data = data[:-1]
             self.stats_normal[self.current_stage].append(data)
 
-        if ("Custom" in line):
+        if ("Porcentaje total de aceptados (Custom)" in line):
+            tokens = line.rstrip().split(" ")
+            data = tokens[-1]
+            if ("%" in data):
+                data = data[:-1]
+            self.stats_custom[self.current_stage].append(data)
+            
+    def record_total(self, line):
+        if ("Numero total de aceptados (Normal)" in line):
+            tokens = line.rstrip().split(" ")
+            data = tokens[-1]
+            if ("%" in data):
+                data = data[:-1]
+            self.stats_normal[self.current_stage].append(data)
+
+        if ("Numero total de aceptados (Custom)" in line):
+            print(line)
             tokens = line.rstrip().split(" ")
             data = tokens[-1]
             if ("%" in data):
@@ -48,13 +64,15 @@ class Record():
             print(self.stats_custom[s] )       
 
 
-    def save_bar_plots(self, positions=[0,1]):
+    def save_bar_plots(self, positions=[0,1],nombre="stats"):
         barwidth = 0.3
-	data = positions
-	#data = [0,len(self.stats_normal["stage1"]) -1 ]
+        data = positions
+        #data = [0,len(self.stats_normal["stage1"]) -1 ]
         for i in data:
             ys_normal = []
             ys_custom = []
+            if (len(self.stats_custom)<1):
+                self.stats_custom = [0]**len(self.stats_normal)
             for s in self.stages:
                 if (s == "stage4"):
                     ys_normal.extend(self.stats_normal[s][i*3:i*3+3])
@@ -63,8 +81,8 @@ class Record():
                     ys_normal.append(self.stats_normal[s][i])
                     ys_custom.append(self.stats_custom[s][i])
                     
-            ys_normal = np.array(ys_normal).astype(int)
-            ys_custom = np.array(ys_custom).astype(int)
+            ys_normal = np.array(ys_normal).astype(float)
+            ys_custom = np.array(ys_custom).astype(float)
             len_ys = len(ys_normal)
             print("ys_custom: ", ys_custom)
             xs_normal = range(1, len_ys)
@@ -77,13 +95,13 @@ class Record():
 
             # value of bar as label for each bar
             for j, v in enumerate(ys_custom):
-                    plt.text(r2[j] - 0.05, v + 0.25, str(v))
+                    plt.text(r2[j] - 0.01, v + 0.25, str(v))
  
             for j, v in enumerate(ys_normal):
-                    plt.text(r1[j] - 0.1, v + 0.25, str(v))
+                    plt.text(r1[j] - 0.3, v + 0.25, str(v))
                                 
             plt.grid(axis="y", linestyle="-")
-            plt.savefig("stats_cycle_"+str(i)+".png")
+            plt.savefig(nombre+"_cycle_"+str(i)+".png")
             plt.close()
 
     def save_data_plots(self):
@@ -106,7 +124,7 @@ class Record():
                 plt.savefig("stats_"+s+".png")
                 plt.close()
         
-def main(filesToProcess, posiciones):
+def main(filesToProcess, posiciones, porcentaje):
     print(posiciones)
     data_positions = []
     data_interval = []
@@ -133,8 +151,10 @@ def main(filesToProcess, posiciones):
                     # solo para comprobar que esta encontrando las fases
                     if (stage != record.current_stage):
                         print("change stage to ",record.current_stage)
-                    
-                    record.record_stat(line)
+                    if (porcentaje):
+                        record.record_stat(line)
+                    else:
+                        record.record_total(line)
                     cnt +=1
 
                 print("log lines", cnt)
@@ -143,12 +163,23 @@ def main(filesToProcess, posiciones):
                 #record.save_data_plots()
         finally:
             fp.close()
-    record.save_bar_plots(data_positions)
+    if (porcentaje):
+        record.save_bar_plots(data_positions)
+    else:
+        record.save_bar_plots(data_positions,"total")
 
     
     
 if __name__ == "__main__":
     files = ["salida_1.txt","salida_2.txt", "salida_3.txt", "salida_4.txt"]
-    main(files, sys.argv[1])
+    if len(sys.argv) > 1:
+        opcion_grafica= (sys.argv[-1])
+    else:
+        opcion_grafica='porcentaje'
+    if opcion_grafica == 'porcentaje':
+        op = True
+    else:
+        op = False
+    main(files, sys.argv[1], op)
 
 
