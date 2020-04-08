@@ -454,12 +454,20 @@ void TrialMover::apply( pose::Pose & pose )
         }
         
         if(umbralLimite != 0){
+            int inicio;
+            if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
+                inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
+            }else{
+                inicio = 0;
+            }
+            
             std::cout << "Tamaño soluciones_anteriores: " << soluciones_anteriores.size()<< std::endl;
-            for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
-            //for(int idx_pose = 0; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
-            //    PoseOP current_pose = soluciones_anteriores[idx_pose];
+//            for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
+            for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
+                PoseOP current_pose = soluciones_anteriores[idx_pose];
             //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
-                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+//                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
                 if (accepted_move == 1 && rmsd_vs_actual < umbralLimite) {
