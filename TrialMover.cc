@@ -191,13 +191,13 @@ stats_type_( all_stats )
     
 //    ultima_solucion_disponible = paths_soluciones_pdbs.size();
 
-    if (umbralLimite > 0) {
-        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-            PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
-            soluciones_anteriores.push_back(ejecucion_previa);
-        }
-    }
+//    if (umbralLimite > 0) {
+//        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+//            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+//            PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
+//            soluciones_anteriores.push_back(ejecucion_previa);
+//        }
+//    }
 }
 
 // Copy constructor
@@ -339,19 +339,19 @@ void TrialMover::imprimirEstadisticasStage4(){
 
 }
 
-void TrialMover::inicializarSolucionesAnteriores(){
-    umbralLimite = getUmbralLimite();
-    if (umbralLimite > 0) {
-        soluciones_anteriores.resize(0);
-        paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
-        std::vector<std::string>::iterator it;
-        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-            pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
-            soluciones_anteriores.push_back(ejecucion_previa);
-        }
-    }
-}
+//void TrialMover::inicializarSolucionesAnteriores(){
+//    umbralLimite = getUmbralLimite();
+//    if (umbralLimite > 0) {
+//        soluciones_anteriores.resize(0);
+//        paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
+//        std::vector<std::string>::iterator it;
+//        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+//            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+//            pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+//            soluciones_anteriores.push_back(ejecucion_previa);
+//        }
+//    }
+//}
 
 
 void TrialMover::imprimir_estadisticas(int numApplys, int stage)

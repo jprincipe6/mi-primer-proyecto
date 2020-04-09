@@ -221,6 +221,7 @@ public:
     int ultima_solucion_disponible;
     std::vector<core::pose::PoseOP> soluciones_anteriores;
     int countApplys;
+    double umbralLimite;
 protected:
     std::vector<std::string> paths_soluciones_pdbs;
     
@@ -229,7 +230,7 @@ protected:
     int cont_total_rmsd_vs_actual_acc;
     int acomuladorDeAceptadosCustom;
     int acomuladorDeAceptadosNormal;
-    double umbralLimite;
+    
 	MoverOP mover_;
 	MonteCarloOP mc_;
 	MoverStatistics stats_;

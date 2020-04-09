@@ -314,37 +314,77 @@ void imprimirTiemposPorNStructs(float time){
     }
 }
 
+double getUmbralLimite(){
+    std::ifstream myfile;
+    std::string line;
+    std::string value;
+
+    myfile.open ("./umbral/umbral.txt", std::ios::in);
+    while (getline(myfile, line)) {
+        std::string str2 = line.substr (8,line.size());
+        value = str2;
+    }
+    return (std::stod(value));
+}
+struct Umbrales_Limites {
+    double umbral_stage_1;
+    double umbral_stage_2;
+    double umbral_stage_3;
+    double umbral_stage_4;
+} ;
+
+Umbrales_Limites getUmbrales(){
+    std::ifstream myfile;
+    std::string line;
+    std::string value;
+    Umbrales_Limites umbralLimite[1];
+    myfile.open ("./umbral/umbral.txt", std::ios::in);
+    while (getline(myfile, line)) {
+        std::string getFlag = line.substr(0,10);
+        std::string value = line.substr (10,line.size());
+        std::cout << "Umbral límite - : " << value << " soluciones_anteriores "<< std::endl;
+        if (getFlag == "-umbral_1=") {
+            umbralLimite[0].umbral_stage_1=(std::stod(value));
+        }
+        if (getFlag == "-umbral_2=") {
+            umbralLimite[0].umbral_stage_2=(std::stod(value));
+        }
+        if (getFlag == "-umbral_3=") {
+            umbralLimite[0].umbral_stage_3=(std::stod(value));
+        }
+        if (getFlag == "-umbral_4=") {
+            umbralLimite[0].umbral_stage_4=(std::stod(value));
+        }
+    }
+    return umbralLimite[0];
+}
+
+
 void ClassicAbinitio::apply( pose::Pose & pose ) {
 	using namespace moves;
 	using namespace scoring;
 	using namespace scoring::constraints;
 
+//    double umbralLimite = 0;
+
+    //umbralLimite=getUmbralLimite();
+//    getUmbrales();
+    umbral_1 = getUmbrales().umbral_stage_1;
+    umbral_2 = getUmbrales().umbral_stage_2;
+    umbral_3 = getUmbrales().umbral_stage_3;
+    umbral_4 = getUmbrales().umbral_stage_4;
     
-    
-    /** Cambiar a una funcion cuando se pueda */
-    
-    /** QUITAR CUANDO ESTE CODIGO SE INICIE En AbrelaxApplication */
-     std::ifstream myfile;
-     std::string line;
-     std::string value;
-     double umbralLimite = 0;
-     myfile.open ("./umbral/umbral.txt", std::ios::in);
-     while (getline(myfile, line)) {
-         std::string str2 = line.substr (8,line.size());
-         value = str2;
-     }
-     umbralLimite= std::stod(value);
-      if (umbralLimite > 0) {
+    if (umbral_1 > 0 || umbral_2 > 0 || umbral_3 > 0 || umbral_4 > 0) {
           soluciones_anteriores.resize(0);
-            const char *path_input_local = "./soluciones_1elwA";
-            paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input_local);
-            std::vector<std::string>::iterator it;
-            for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-                std::string path_file_pdb = std::string (path_input_local) + std::string("/") +std::string(*it);
-                pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
-                soluciones_anteriores.push_back(ejecucion_previa);
-            }
-        }
+          const char *path_input_local = "./soluciones_1elwA";
+          paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input_local);
+          std::vector<std::string>::iterator it;
+          for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+              std::string path_file_pdb = std::string (path_input_local) + std::string("/") +std::string(*it);
+              pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+              soluciones_anteriores.push_back(ejecucion_previa);
+          }
+    }
      
      /* fin de inicializar soluciones anteriores */
     std::chrono::seconds sumGlobal;
@@ -359,6 +399,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 	total_trials_ = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
 	if ( !bSkipStage1_ ) {
+
 		PROF_START( basic::STAGE1 );
 		clock_t starttime = clock();
 
@@ -944,18 +985,17 @@ bool hConvergenceCheck::operator() ( const core::pose::Pose & pose ) {
 bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 	AllResiduesChanged done( pose, brute_move_large()->insert_map(), *movemap() );
 	moves::MoverOP trial( stage1_mover( pose, trial_large() ) );
-//    derived = boost::dynamic_pointer_cast<protocols::moves::TrialMoverOP>(trial);
+    // Inicializo para llamar al métodos del TrialMover
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
     
-	// FragmentMoverOP frag_mover = brute_move_large_;
-	// fragment::FragmentIO().write("stage1_frags_classic.dat",*frag_mover->fragments());
-
+    //Cargo un el vector de soluciones_anteriores
 	Size j;
+    derived->umbralLimite = umbral_1;
     derived->soluciones_anteriores = soluciones_anteriores;
-
-//    derived->inicializarSolucionesAnteriores();
+    
+    //Reseteamos acomuladores
     derived->resetAcomuladores();
-//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
 	for ( j = 1; j <= stage1_cycles(); ++j ) {
 		trial->apply( pose ); // apply a large fragment insertion, accept with MC boltzmann probability
 		if ( done(pose) ) {
@@ -969,8 +1009,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
 		}
 	}
     
-    // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-    
+    // IMPRIMIR ESTADÍSTICAS
     derived->imprimir_estadisticas(derived->countApplys, 1);
     derived->resetAcomuladores();
     
@@ -990,21 +1029,19 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 
 	Size nr_cycles = stage2_cycles() / ( short_insert_region_ ? 2 : 1 );
 	moves::TrialMoverOP trials( new moves::TrialMover( cycle, mc_ptr() ) );
+    
+    // Inicializo para llamar al métodos del TrialMover
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-//    derived->inicializarSolucionesAnteriores();
+    //Reseteamos acomuladores
+    derived->umbralLimite = umbral_2;
     derived->resetAcomuladores();
     derived->soluciones_anteriores = soluciones_anteriores;
 	moves::RepeatMover( stage2_mover( pose, trials ), nr_cycles ).apply(pose);
 
-    // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-
-
-
-//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
+    // IMPRIMIR ESTADÍSTICAS
 
     derived->imprimir_estadisticas(derived->countApplys, 2);
     derived->resetAcomuladores();
-    // trials->imprimir_estadisticas();
     
 	//is there a better way to find out how many steps ? for instance how many calls to scoring?
 	return true; // as best guess
@@ -1044,12 +1081,12 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 	}
 
 	moves::TrialMoverOP trials = trial_large();
+    // Inicializo para llamar al métodos del TrialMover
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+    derived->umbralLimite = umbral_3;
     derived->soluciones_anteriores = soluciones_anteriores;
-
-//    derived->inicializarSolucionesAnteriores();
+    //Reseteamos acomuladores
     derived->resetAcomuladores();
-//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
 
 	int iteration = 1;
 	for ( int lct1 = 1; lct1 <= nloop1; lct1++ ) {
@@ -1088,11 +1125,11 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 	} // loop 1
     
     
-    // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
+    // AQUÍ IMPRIMIR ESTADÍSTICAS
 
     derived->imprimir_estadisticas(derived->countApplys, 3);
     derived->resetAcomuladores();
-    // trials->imprimir_estadisticas();
+
 	return true;
 }
 
@@ -1133,22 +1170,20 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
 			}
 
 			tr.Debug << "start " << stage4_cycles() << " cycles" << std::endl;
+            // Inicializo para llamar al métodos del TrialMover
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
+            derived->umbralLimite = umbral_4;
             derived->soluciones_anteriores = soluciones_anteriores;
-
-//            derived->inicializarSolucionesAnteriores();
+            // Inicializo para llamar al métodos del TrialMover
             derived->resetAcomuladores();
-//            derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
 			moves::RepeatMover( stage4_mover( pose, kk, trials ), stage4_cycles() ).apply(pose);
 			tr.Debug << "finished" << std::endl;
 			recover_low( pose, STAGE_4 );
 
 			get_checkpoints().checkpoint( pose, get_current_tag(), "stage4_kk_" + ObjexxFCL::string_of(kk), true /*fold tree */ );
           
-            // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
-            // estadisticas de cada iteracion en el loop de la fase stage4
-
-            //derived->imprimir_estadisticas(stage4_cycles(), 4);
+            //AQUÍ IMPRIMIR ESTADÍSTICAS
             derived->setEstadisticasStage4(kk-1, derived->countApplys);
             derived->resetAcomuladores();
         }

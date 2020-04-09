@@ -453,7 +453,11 @@ public:
 	bool bSkipStage3_;
 	bool bSkipStage4_;
 	bool bSkipStage5_;
-
+    
+    double umbral_1;
+    double umbral_2;
+    double umbral_3;
+    double umbral_4;
 
 	utility::vector1< StageID > recover_low_stages_;
 
