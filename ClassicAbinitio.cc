@@ -399,7 +399,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 	total_trials_ = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
 	if ( !bSkipStage1_ ) {
-
+        
 		PROF_START( basic::STAGE1 );
 		clock_t starttime = clock();
 
