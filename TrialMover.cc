@@ -144,18 +144,42 @@ delta( 0.0 ),
 stats_type_( all_stats )
 {}
 
+std::vector<std::string> tokenize(const std::string& s, char c) {
+    auto end = s.cend();
+    auto start = end;
+
+    std::vector<std::string> v;
+    for( auto it = s.cbegin(); it != end; ++it ) {
+        if( *it != c ) {
+            if( start == end )
+                start = it;
+            continue;
+        }
+        if( start != end ) {
+            v.emplace_back(start, it);
+            start = end;
+        }
+    }
+    if( start != end )
+        v.emplace_back(start, end);
+    return v;
+}
+
 
 core::Real getUmbralLimite(){
     std::ifstream myfile;
     std::string line;
     std::string value;
+    std::vector<std::string> elems;
     double umbral = 0;
     myfile.open ("./umbral/umbral.txt", std::ios::in);
     while (getline(myfile, line)) {
         std::string str2 = line.substr (8,line.size());
         value = str2;
     }
-    umbral  = std::stod(value);
+    elems = tokenize(value,';');
+//    std::cout << "Valores: " << elems[3] << std::endl;
+    umbral  = std::stod(elems[3]);
     return umbral;
 }
 // constructor with arguments
@@ -186,18 +210,18 @@ stats_type_( all_stats )
     countApplys = 0;
     
 //    inicializarSolucionesAnteriores();
-    
-//    umbralLimite = getUmbralLimite();
+    umbral_apply=0;
+    umbralLimite = 0;
     
 //    ultima_solucion_disponible = paths_soluciones_pdbs.size();
 
-//    if (umbralLimite > 0) {
-//        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-//            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-//            PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
-//            soluciones_anteriores.push_back(ejecucion_previa);
-//        }
-//    }
+    if (umbralLimite > 0) {
+        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+            PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
+            soluciones_anteriores.push_back(ejecucion_previa);
+        }
+    }
 }
 
 // Copy constructor
@@ -339,19 +363,19 @@ void TrialMover::imprimirEstadisticasStage4(){
 
 }
 
-//void TrialMover::inicializarSolucionesAnteriores(){
-//    umbralLimite = getUmbralLimite();
-//    if (umbralLimite > 0) {
-//        soluciones_anteriores.resize(0);
-//        paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
-//        std::vector<std::string>::iterator it;
-//        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-//            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-//            pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
-//            soluciones_anteriores.push_back(ejecucion_previa);
-//        }
-//    }
-//}
+void TrialMover::inicializarSolucionesAnteriores(){
+    umbralLimite = getUmbralLimite();
+    if (umbralLimite > 0) {
+        soluciones_anteriores.resize(0);
+        paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
+        std::vector<std::string>::iterator it;
+        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
+            pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+            soluciones_anteriores.push_back(ejecucion_previa);
+        }
+    }
+}
 
 
 void TrialMover::imprimir_estadisticas(int numApplys, int stage)
@@ -442,7 +466,9 @@ void TrialMover::apply( pose::Pose & pose )
     //std::cout << umbralLimite<< std::endl;
     //Contador de Applys
     countApplys++;
-//    std::cout << "Umbral límite: " << umbralLimite << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
+    std::cout << "===== Umbral =====" << std::endl;
+    std::cout << "Umbral límite: " << umbralLimite << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
+    std::cout << "Umbral apply: " << umbral_apply << " Estado " << stage << std::endl;
     if (soluciones_anteriores.size() > 0){
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
@@ -453,14 +479,15 @@ void TrialMover::apply( pose::Pose & pose )
             acomuladorDeAceptadosNormal += 1;
         }
         
-        if(umbralLimite != 0){
+//        if(umbralLimite != 0){
+        if(umbral_apply != 0){
             int inicio;
             if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
                 inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
             }else{
                 inicio = 0;
             }
-            std::cout << "Umbral límite: " << umbralLimite << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
+            std::cout << "Umbral--: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<< std::endl;
 //            std::cout << "Tamaño soluciones_anteriores: " << soluciones_anteriores.size()<< std::endl;
 //            for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
             for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
@@ -470,7 +497,7 @@ void TrialMover::apply( pose::Pose & pose )
                 core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
-                if (accepted_move == 1 && rmsd_vs_actual < umbralLimite) {
+                if (accepted_move == 1 && rmsd_vs_actual < umbral_apply) {
                     reemplazo_rechazado = true;
                     break;
                 }
@@ -480,11 +507,11 @@ void TrialMover::apply( pose::Pose & pose )
         //que el actual
         if (accepted_move == 1 && reemplazo_rechazado == false) {
             acomuladorDeAceptadosCustom +=1;
+            std::cout << "Acomulador custom " << acomuladorDeAceptadosCustom << " Umbral apply: " << umbral_apply << " Estado " << stage << std::endl;
         }else {
             pose = pose_anterior;
         }
     } else {
-        std::cout << "Umbral límite: " << umbralLimite << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;

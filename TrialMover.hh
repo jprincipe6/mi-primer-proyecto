@@ -70,9 +70,9 @@ namespace moves {
 // the StatsType of i-1 keeps all of the same
 // statistics as StatsType.
 enum StatsType {
-	all_stats = 1, // scores, accepts and rejects
-	accept_reject, // only accept and reject counts
-	no_stats      // no stats. Always keep last.
+    all_stats = 1, // scores, accepts and rejects
+    accept_reject, // only accept and reject counts
+    no_stats      // no stats. Always keep last.
 };
 
 
@@ -80,27 +80,27 @@ enum StatsType {
 
 class MonteCarloUtil : public Mover {
 public:
-	MonteCarloUtil();
-	MonteCarloUtil(protocols::moves::MonteCarloOP mc);
-	~MonteCarloUtil() override;
-	void apply(Pose & pose) override;
+    MonteCarloUtil();
+    MonteCarloUtil(protocols::moves::MonteCarloOP mc);
+    ~MonteCarloUtil() override;
+    void apply(Pose & pose) override;
 
-	void parse_my_tag(
-		utility::tag::TagCOP tag,
-		basic::datacache::DataMap & /* data */,
-		protocols::filters::Filters_map const & /* filters */,
-		protocols::moves::Movers_map const & /* movers */,
-		core::pose::Pose const & /* pose */
-	) override;
+    void parse_my_tag(
+        utility::tag::TagCOP tag,
+        basic::datacache::DataMap & /* data */,
+        protocols::filters::Filters_map const & /* filters */,
+        protocols::moves::Movers_map const & /* movers */,
+        core::pose::Pose const & /* pose */
+    ) override;
 
-	protocols::moves::MoverOP clone() const override;
-	protocols::moves::MoverOP fresh_instance() const override;
-	std::string get_name() const override;
+    protocols::moves::MoverOP clone() const override;
+    protocols::moves::MoverOP fresh_instance() const override;
+    std::string get_name() const override;
 
 
 private:
-	protocols::moves::MonteCarloOP mc_;
-	std::string mode_;
+    protocols::moves::MonteCarloOP mc_;
+    std::string mode_;
 
 };
 
@@ -113,102 +113,102 @@ private:
 class TrialMover : public Mover {
 public:
 
-	typedef core::Real Real;
+    typedef core::Real Real;
 
 public:
 
-	TrialMover();
+    TrialMover();
 
-	// constructor with arguments -- BAD, MOVE TO .CC
-	/// @brief Constructs a TrialMover
-	/// trialmover = TrialMover( mover_in , mc_in )
-	///
-	/// Mover        mover_in   /object defining what move to make
-	/// MonteCarlo   mc_in      /object defining acceptance
-	TrialMover( MoverOP mover_in, MonteCarloOP mc_in );
+    // constructor with arguments -- BAD, MOVE TO .CC
+    /// @brief Constructs a TrialMover
+    /// trialmover = TrialMover( mover_in , mc_in )
+    ///
+    /// Mover        mover_in   /object defining what move to make
+    /// MonteCarlo   mc_in      /object defining acceptance
+    TrialMover( MoverOP mover_in, MonteCarloOP mc_in );
 
-	/// @brief Copy constructor
-	TrialMover(TrialMover const & object_to_copy);
+    /// @brief Copy constructor
+    TrialMover(TrialMover const & object_to_copy);
 
-	~TrialMover() override;
+    ~TrialMover() override;
 
 
-	// set the weights for the score_type for ramping -- BAD, MOVE TO .CC
-	virtual void initialize_weights(
-		Real const start_weight,
-		Real const end_weight,
-		core::scoring::ScoreType score_type,
-		int const ramp_cycles
-	);
+    // set the weights for the score_type for ramping -- BAD, MOVE TO .CC
+    virtual void initialize_weights(
+        Real const start_weight,
+        Real const end_weight,
+        core::scoring::ScoreType score_type,
+        int const ramp_cycles
+    );
 
-	/// @brief Performs a single trial, apply the Mover and accept or
-	/// reject the move based on the MonteCarlo acceptance criteria
-	///
-	/// example(s):
-	///     trialmover.apply(pose)
-	/// See Also:
-	///     Pose
-	///     MonteCarlo
-	///     MonteCarlo.boltzmann
-	///     RepeatMover
-	///     SequenceMover
-	///     TrialMover
-	void apply( core::pose::Pose & pose ) override;
+    /// @brief Performs a single trial, apply the Mover and accept or
+    /// reject the move based on the MonteCarlo acceptance criteria
+    ///
+    /// example(s):
+    ///     trialmover.apply(pose)
+    /// See Also:
+    ///     Pose
+    ///     MonteCarlo
+    ///     MonteCarlo.boltzmann
+    ///     RepeatMover
+    ///     SequenceMover
+    ///     TrialMover
+    void apply( core::pose::Pose & pose ) override;
 
-	std::string get_name() const override;
-	protocols::moves::MoverOP clone() const override;
-	protocols::moves::MoverOP fresh_instance() const override;
+    std::string get_name() const override;
+    protocols::moves::MoverOP clone() const override;
+    protocols::moves::MoverOP fresh_instance() const override;
 
-	Real acceptance_rate() const;
+    Real acceptance_rate() const;
 
-	/// @brief Returns the number of moves accepted by this TrialMover
-	int num_accepts() const;
+    /// @brief Returns the number of moves accepted by this TrialMover
+    int num_accepts() const;
 
-	/// @brief Sets the MonteCarlo object to  <mc_in>
-	///
-	/// example(s):
-	///     trialmover.set_mc(mc)
-	/// See Also:
-	///     MonteCarlo
-	///     MonteCarlo.boltzmann
-	///     TrialMover
-	void set_mc( MonteCarloOP mc_in );
+    /// @brief Sets the MonteCarlo object to  <mc_in>
+    ///
+    /// example(s):
+    ///     trialmover.set_mc(mc)
+    /// See Also:
+    ///     MonteCarlo
+    ///     MonteCarlo.boltzmann
+    ///     TrialMover
+    void set_mc( MonteCarloOP mc_in );
 
-	/// @brief Returns the underlying Mover
-	MoverOP mover() const {
-		return mover_;
-	}
+    /// @brief Returns the underlying Mover
+    MoverOP mover() const {
+        return mover_;
+    }
 
-	/// @brief Returns the underlying MonteCarlo object
-	MonteCarlo const& mc () const {
-		return *mc_;
-	}
+    /// @brief Returns the underlying MonteCarlo object
+    MonteCarlo const& mc () const {
+        return *mc_;
+    }
 
-	StatsType keep_stats_type() const {
-		return stats_type_;
-	}
+    StatsType keep_stats_type() const {
+        return stats_type_;
+    }
 
-	void keep_stats_type( StatsType setting ) {
-		stats_type_ = setting;
-	}
+    void keep_stats_type( StatsType setting ) {
+        stats_type_ = setting;
+    }
 
-	// @brief Sets the input Pose also for the contained Mover
-	void set_input_pose( PoseCOP pose ) override;
+    // @brief Sets the input Pose also for the contained Mover
+    void set_input_pose( PoseCOP pose ) override;
 
-	// @brief Sets the native Pose also for the contained Mover
-	void set_native_pose( PoseCOP pose ) override;
+    // @brief Sets the native Pose also for the contained Mover
+    void set_native_pose( PoseCOP pose ) override;
 
-	/// @brief Requires that a MonteCarlo object has already been
-	/// loaded into the basic::datacache::DataMap in a prior MONTECARLOS objects
-	/// section.
-	void parse_my_tag(
-		TagCOP tag,
-		basic::datacache::DataMap & data,
-		Filters_map const & filters,
-		Movers_map const & movers,
-		Pose const &
-	) override;
-	friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
+    /// @brief Requires that a MonteCarlo object has already been
+    /// loaded into the basic::datacache::DataMap in a prior MONTECARLOS objects
+    /// section.
+    void parse_my_tag(
+        TagCOP tag,
+        basic::datacache::DataMap & data,
+        Filters_map const & filters,
+        Movers_map const & movers,
+        Pose const &
+    ) override;
+    friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
 
     void imprimir_estadisticas(int numApplys, int stage);
 
@@ -221,7 +221,8 @@ public:
     int ultima_solucion_disponible;
     std::vector<core::pose::PoseOP> soluciones_anteriores;
     int countApplys;
-    double umbralLimite;
+    double umbral_apply;
+    std::string stage;
 protected:
     std::vector<std::string> paths_soluciones_pdbs;
     
@@ -230,17 +231,17 @@ protected:
     int cont_total_rmsd_vs_actual_acc;
     int acomuladorDeAceptadosCustom;
     int acomuladorDeAceptadosNormal;
-    
-	MoverOP mover_;
-	MonteCarloOP mc_;
-	MoverStatistics stats_;
+    double umbralLimite;
+    MoverOP mover_;
+    MonteCarloOP mc_;
+    MoverStatistics stats_;
 
 private:
-	Real start_weight_;
-	Real original_weight;
-	Real ramp_weight;
-	Real delta;
-	StatsType stats_type_;
+    Real start_weight_;
+    Real original_weight;
+    Real ramp_weight;
+    Real delta;
+    StatsType stats_type_;
 }; // TrialMover base class
 
 } // moves
