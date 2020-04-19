@@ -209,19 +209,6 @@ stats_type_( all_stats )
     acomuladorDeAceptadosNormal = 0;
     countApplys = 0;
     
-//    inicializarSolucionesAnteriores();
-    umbral_apply=0;
-    umbralLimite = 0;
-    
-//    ultima_solucion_disponible = paths_soluciones_pdbs.size();
-
-    if (umbralLimite > 0) {
-        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-            PoseOP ejecucion_previa = pose_from_file(path_file_pdb);
-            soluciones_anteriores.push_back(ejecucion_previa);
-        }
-    }
 }
 
 // Copy constructor
@@ -300,11 +287,7 @@ void TrialMover::setEstadisticasStage4(int index, int numApplys){
     } else {
         custom = 0;
     }
-/*    std::cout << "valor de normal " << normal << std::endl;
-    std::cout << "valor de custom " << custom << std::endl;
-    std::cout << "valor de media " << media << std::endl;
-    std::cout << "valor de totalRMSD_VS_ACTUAL " << totalRmsdVsActual << std::endl;
-    std::cout << "valor numApplys " << numApplys << std::endl;*/
+
     estadisticasStage4[index].acomuladorDeAceptadosNormal = normal;
     estadisticasStage4[index].acomuladorDeAceptadosCustom = custom;
     estadisticasStage4[index].media = media;
@@ -312,7 +295,7 @@ void TrialMover::setEstadisticasStage4(int index, int numApplys){
     estadisticasStage4[index].numApply = numApplys;
 
 }
-void TrialMover::imprimirEstadisticasStage4(){
+void TrialMover::imprimirEstadisticasStage4(int numPdb){
     int tamanoStage4 = 3;
     double media = 0;
     double normal = 0;
@@ -324,7 +307,7 @@ void TrialMover::imprimirEstadisticasStage4(){
     if (myfile.is_open())
     {
         myfile << "============================================" << std::endl;
-        myfile << "================ FINAL STATS ===============" << std::endl;
+        myfile << "================ FINAL STATS "<< numPdb<<" ===============" << std::endl;
         myfile << "================ STAGE - 4 =================" << std::endl;
         
         for (int index=0; index < tamanoStage4; index++) {
@@ -343,17 +326,17 @@ void TrialMover::imprimirEstadisticasStage4(){
             myfile <<"Número de veces que se llama Apply: " << numApplys<< std::endl;
             if (normal > 0){
                 myfile <<"Porcentaje total de aceptados (Normal): "<< (normal * 100)/numApplys<<"%" << std::endl;
-                myfile <<"Numero total de aceptados (Normal): "<< normal <<"%" << std::endl;
+                myfile <<"Numero total de aceptados (Normal): "<< normal << std::endl;
             } else {
                 myfile <<"Porcentaje total de aceptados (Normal): 0%"<< std::endl;
-                myfile <<"Numero total de aceptados (Normal): 0%" << std::endl;
+                myfile <<"Numero total de aceptados (Normal): 0" << std::endl;
             }
             if (custom > 0){
                 myfile <<"Porcentaje total de aceptados (Custom): "<< (custom*100)/numApplys <<"%" << std::endl;
-                myfile <<"Numero total de aceptados (Custom): "<< custom <<"%" << std::endl;
+                myfile <<"Numero total de aceptados (Custom): "<< custom << std::endl;
             } else {
                 myfile <<"Porcentaje total de aceptados (Custom): 0%"<< std::endl;
-                myfile <<"Numero total de aceptados (Custom): 0%" << std::endl;
+                myfile <<"Numero total de aceptados (Custom): 0" << std::endl;
             }
         }
         myfile << "============================================" << std::endl;
@@ -363,22 +346,8 @@ void TrialMover::imprimirEstadisticasStage4(){
 
 }
 
-void TrialMover::inicializarSolucionesAnteriores(){
-    umbralLimite = getUmbralLimite();
-    if (umbralLimite > 0) {
-        soluciones_anteriores.resize(0);
-        paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input);
-        std::vector<std::string>::iterator it;
-        for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-            std::string path_file_pdb = std::string (path_input) + std::string("/") +std::string(*it);
-            pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
-            soluciones_anteriores.push_back(ejecucion_previa);
-        }
-    }
-}
 
-
-void TrialMover::imprimir_estadisticas(int numApplys, int stage)
+void TrialMover::imprimir_estadisticas(int numApplys, int stage, int numPdb)
 {
     std::ofstream myfile;
     myfile.open ("salida_"+std::to_string(stage)+".txt", std::ios::out | std::ios::app );
@@ -386,7 +355,7 @@ void TrialMover::imprimir_estadisticas(int numApplys, int stage)
     if (myfile.is_open())
     {
         myfile << "============================================" << std::endl;
-        myfile << "================ FINAL STATS ===============" << std::endl;
+        myfile << "================ FINAL STATS "<< numPdb << " ===============" << std::endl;
         myfile << "================ STAGE - " << stage <<" =================" << std::endl;
         
         if (cont_total_rmsd_vs_actual_acc > 0) {
@@ -399,17 +368,17 @@ void TrialMover::imprimir_estadisticas(int numApplys, int stage)
         std::cout << "NUM APPLYS: " << numApplys << " Aceptados-Normal "<< acomuladorDeAceptadosNormal <<" Aceptados-Custom "<< acomuladorDeAceptadosCustom << std::endl;
         if (acomuladorDeAceptadosNormal > 0){
             myfile <<"Porcentaje total de aceptados (Normal): " << (acomuladorDeAceptadosNormal * 100)/numApplys <<"%" << std::endl;
-             myfile <<"Numero total de aceptados (Normal): " << acomuladorDeAceptadosNormal  <<"%" << std::endl;
+             myfile <<"Numero total de aceptados (Normal): " << acomuladorDeAceptadosNormal<< std::endl;
         } else {
             myfile <<"Porcentaje total de aceptados (Normal): 0%" << std::endl;
-            myfile <<"Numero total de aceptados (Normal): 0%" << std::endl;
+            myfile <<"Numero total de aceptados (Normal): 0" << std::endl;
         }
         if (acomuladorDeAceptadosCustom > 0){
             myfile <<"Porcentaje total de aceptados (Custom): " << (acomuladorDeAceptadosCustom * 100)/numApplys <<"%" << std::endl;
-            myfile <<"Numero total de aceptados (Custom): " << acomuladorDeAceptadosCustom <<"%" << std::endl;
+            myfile <<"Numero total de aceptados (Custom): " << acomuladorDeAceptadosCustom << std::endl;
         } else {
             myfile <<"Porcentaje total de aceptados (Custom): 0%" << std::endl;
-            myfile <<"Numero total de aceptados (Custom): 0%" << std::endl;
+            myfile <<"Numero total de aceptados (Custom): 0" << std::endl;
         }
         myfile << "============================================" << std::endl;
     }else {
@@ -466,34 +435,36 @@ void TrialMover::apply( pose::Pose & pose )
     //std::cout << umbralLimite<< std::endl;
     //Contador de Applys
     countApplys++;
-    std::cout << "===== Umbral =====" << std::endl;
-    std::cout << "Umbral límite: " << umbralLimite << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
-    std::cout << "Umbral apply: " << umbral_apply << " Estado " << stage << std::endl;
-    if (soluciones_anteriores.size() > 0){
+    std::cout << "===== Umbral " << "- " << stage << " =====" << std::endl;
+    std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
+
+    if(umbral_apply > 0){
         
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         bool reemplazo_rechazado = false;
         
-        
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
         }
-        
-//        if(umbralLimite != 0){
-        if(umbral_apply != 0){
+
+        if (soluciones_anteriores.size() > 0){
             int inicio;
             if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
                 inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
             }else{
                 inicio = 0;
             }
-            std::cout << "Umbral--: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<< std::endl;
+            std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<< std::endl;
+            
 //            std::cout << "Tamaño soluciones_anteriores: " << soluciones_anteriores.size()<< std::endl;
 //            for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
+            
             for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
                 PoseOP current_pose = soluciones_anteriores[idx_pose];
+                
             //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
 //                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
+                
                 core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
@@ -502,22 +473,23 @@ void TrialMover::apply( pose::Pose & pose )
                     break;
                 }
             }
-        }
-        //Solo se acepta el reemplazo si todas las soluciones son mayor
-        //que el actual
-        if (accepted_move == 1 && reemplazo_rechazado == false) {
-            acomuladorDeAceptadosCustom +=1;
-            std::cout << "Acomulador custom " << acomuladorDeAceptadosCustom << " Umbral apply: " << umbral_apply << " Estado " << stage << std::endl;
-        }else {
-            pose = pose_anterior;
-        }
+            //Solo se acepta el reemplazo si todas las soluciones son mayor
+            //que el actual
+            if (accepted_move == 1 && reemplazo_rechazado == false) {
+                acomuladorDeAceptadosCustom +=1;
+                std::cout << "Acomulador custom " << acomuladorDeAceptadosCustom << " Umbral apply: " << umbral_apply << std::endl;
+            }else {
+                pose = pose_anterior;
+            }
+        }// fin (soluciones_anteriores.size() > 0)
+
     } else {
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
         }
         
-    }
+    }// fin (umbral_apply > 0)
     
     if ( keep_stats_type() == all_stats ) {
         stats_.add_score( mc_->total_score_of_last_considered_pose() );

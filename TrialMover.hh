@@ -210,12 +210,12 @@ public:
     ) override;
     friend std::ostream &operator<< (std::ostream &os, TrialMover const &mover);
 
-    void imprimir_estadisticas(int numApplys, int stage);
+    void imprimir_estadisticas(int numApplys, int stage, int numPdb);
 
     void resetAcomuladores();
     void inicializarSolucionesAnteriores();
     void setEstadisticasStage4(int index, int numApplys);
-    void imprimirEstadisticasStage4();
+    void imprimirEstadisticasStage4(int numPdb);
     
 public:
     int ultima_solucion_disponible;

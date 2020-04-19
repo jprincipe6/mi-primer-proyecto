@@ -383,10 +383,18 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 //     }
     
      std::vector<std::string> elems = getUmbrales();
-     umbral_1= std::stod(elems[0]);
-     umbral_2= std::stod(elems[1]);
-     umbral_3= std::stod(elems[2]);
-     umbral_4= std::stod(elems[3]);
+    if(elems.size() > 1){
+        umbral_1= std::stod(elems[0]);
+        umbral_2= std::stod(elems[1]);
+        umbral_3= std::stod(elems[2]);
+        umbral_4= std::stod(elems[3]);
+    }else{
+        umbral_1= std::stod(elems[0]);
+        umbral_2= std::stod(elems[0]);
+        umbral_3= std::stod(elems[0]);
+        umbral_4= std::stod(elems[0]);
+    }
+
       if (umbral_1 > 0 || umbral_2 > 0|| umbral_3 > 0 || umbral_4 > 0) {
           soluciones_anteriores.resize(0);
             const char *path_input_local = "./soluciones_1elwA";
@@ -1009,6 +1017,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     derived->umbral_apply = umbral_1;
 //    derived->inicializarSolucionesAnteriores();
     derived->resetAcomuladores();
+    int numPdb = derived->soluciones_anteriores.size();
 //    derived->ultima_solucion_disponible = ultima_solucion_disponible;
     for ( j = 1; j <= stage1_cycles(); ++j ) {
         trial->apply( pose ); // apply a large fragment insertion, accept with MC boltzmann probability
@@ -1016,7 +1025,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
             tr.Info << "Replaced extended chain after " << j << " cycles." << std::endl;
             mc().reset( pose ); // make sure that we keep the final structure
             
-            derived->imprimir_estadisticas(derived->countApplys, 1);
+            derived->imprimir_estadisticas(derived->countApplys, 1, numPdb);
             derived->resetAcomuladores();
             
             return true;
@@ -1025,7 +1034,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
     
-    derived->imprimir_estadisticas(derived->countApplys, 1);
+    derived->imprimir_estadisticas(derived->countApplys, 1, numPdb);
     derived->resetAcomuladores();
     
     tr.Warning << "extended chain may still remain after " << stage1_cycles() << " cycles!" << std::endl;
@@ -1050,6 +1059,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     derived->umbral_apply = umbral_2;
     derived->resetAcomuladores();
     derived->soluciones_anteriores = soluciones_anteriores;
+    int numPdb = derived->soluciones_anteriores.size();
     moves::RepeatMover( stage2_mover( pose, trials ), nr_cycles ).apply(pose);
 
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
@@ -1058,7 +1068,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 
 //    derived->ultima_solucion_disponible = ultima_solucion_disponible;
 
-    derived->imprimir_estadisticas(derived->countApplys, 2);
+    derived->imprimir_estadisticas(derived->countApplys, 2, numPdb);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
     
@@ -1098,11 +1108,11 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     moves::TrialMoverOP trials = trial_large();
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
     derived->soluciones_anteriores = soluciones_anteriores;
+    int numPdb = derived->soluciones_anteriores.size();
     derived->stage = "Stage 3";
     derived->umbral_apply = umbral_3;
-//    derived->inicializarSolucionesAnteriores();
     derived->resetAcomuladores();
-//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
 
     int iteration = 1;
     for ( int lct1 = 1; lct1 <= nloop1; lct1++ ) {
@@ -1111,7 +1121,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
             tr.Debug << "Loop: " << lct1 << "   " << lct2 << std::endl;
 
             if ( !prepare_loop_in_stage3( pose, iteration, nloop1*nloop2 ) ) {
-                derived->imprimir_estadisticas(derived->countApplys, 3);
+                derived->imprimir_estadisticas(derived->countApplys, 3, numPdb);
                 derived->resetAcomuladores();
                 return false;
             }
@@ -1123,10 +1133,23 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                 tr.Debug << "  Score stage3 loop iteration " << lct1 << " " << lct2 << std::endl;
                 if ( convergence_checker ) {
                     moves::TrialMoverOP stage3_trials = stage3_mover( pose, lct1, lct2, trials );
+                    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(stage3_trials);
+                    derived->soluciones_anteriores = soluciones_anteriores;
+                    int numPdb = derived->soluciones_anteriores.size();
+                    derived->stage = "Stage 3";
+                    derived->umbral_apply = umbral_3;
+                    derived->resetAcomuladores();
                     convergence_checker->set_trials( stage3_trials ); //can be removed late
                     moves::WhileMover( stage3_trials, stage3_cycles(), convergence_checker ).apply( pose );
                 } else {    //no convergence check -> no WhileMover
-                    moves::RepeatMover( stage3_mover( pose, lct1, lct2, trials ), stage3_cycles() ).apply( pose );
+                    moves::TrialMoverOP stage3_trials = stage3_mover( pose, lct1, lct2, trials );
+                    derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(stage3_trials);
+                    derived->soluciones_anteriores = soluciones_anteriores;
+                    int numPdb = derived->soluciones_anteriores.size();
+                    derived->stage = "Stage 3";
+                    derived->umbral_apply = umbral_3;
+                    derived->resetAcomuladores();
+                    moves::RepeatMover( stage3_trials, stage3_cycles() ).apply( pose );
                 }
 
                 if ( numeric::mod( (int)iteration, 2 ) == 0 || iteration > 7 ) recover_low( pose, STAGE_3a );
@@ -1143,7 +1166,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
 
-    derived->imprimir_estadisticas(derived->countApplys, 3);
+    derived->imprimir_estadisticas(derived->countApplys, 3, numPdb);
     derived->resetAcomuladores();
     // trials->imprimir_estadisticas();
     return true;
@@ -1167,7 +1190,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
     using namespace basic::options::OptionKeys;
 
     if ( option[corrections::score::cenrot]() ) nloop_stage4=2;
-
+    int numPdb = 0;
     for ( Size kk = 1; kk <= nloop_stage4; ++kk ) {
         tr.Debug << "prepare ..." << std::endl ;
         if ( !prepare_loop_in_stage4( pose, kk, nloop_stage4 ) ) return false;
@@ -1186,7 +1209,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             derived->stage = "Stage 4";
             derived->umbral_apply = umbral_4;
             derived->soluciones_anteriores = soluciones_anteriores;
-
+            numPdb = derived->soluciones_anteriores.size();
 //            derived->inicializarSolucionesAnteriores();
             derived->resetAcomuladores();
 //            derived->ultima_solucion_disponible = ultima_solucion_disponible;
@@ -1214,7 +1237,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
     }  // loop kk
     moves::TrialMoverOP trials;
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->imprimirEstadisticasStage4();
+    derived->imprimirEstadisticasStage4(numPdb);
     if ( option[corrections::score::cenrot] ) {
         //switch to cenrot model
         tr.Debug << "switching to cenrot model ..." << std::endl;
