@@ -353,7 +353,6 @@ std::vector<std::string> getUmbrales(){
         std::string str2 = line.substr (8,line.size());
         value = str2;
     }
-//    std::cout << "Valores: " << value << std::endl;
     elems = tokenize(value,';');
     
     return elems;
@@ -365,22 +364,10 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
     using namespace scoring::constraints;
 
     
-    
-    /** Cambiar a una funcion cuando se pueda */
-    
-    /** QUITAR CUANDO ESTE CODIGO SE INICIE En AbrelaxApplication */
-//     std::ifstream myfile;
-//     std::string line;
-//     std::string value;
      umbral_1 = 0;
      umbral_2 = 0;
      umbral_3 = 0;
      umbral_4 = 0;
-//     myfile.open ("./umbral/umbral.txt", std::ios::in);
-//     while (getline(myfile, line)) {
-//         std::string str2 = line.substr (8,line.size());
-//         value = str2;
-//     }
     
      std::vector<std::string> elems = getUmbrales();
     if(elems.size() > 1){
@@ -1005,20 +992,15 @@ bool hConvergenceCheck::operator() ( const core::pose::Pose & pose ) {
 bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     AllResiduesChanged done( pose, brute_move_large()->insert_map(), *movemap() );
     moves::MoverOP trial( stage1_mover( pose, trial_large() ) );
-//    derived = boost::dynamic_pointer_cast<protocols::moves::TrialMoverOP>(trial);
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
     derived->umbral_apply = umbral_1;
-    // FragmentMoverOP frag_mover = brute_move_large_;
-    // fragment::FragmentIO().write("stage1_frags_classic.dat",*frag_mover->fragments());
-
+    derived->stage = "Stage 1";
     Size j;
     derived->soluciones_anteriores = soluciones_anteriores;
-    derived->stage = "Stage 1";
-    derived->umbral_apply = umbral_1;
-//    derived->inicializarSolucionesAnteriores();
+
     derived->resetAcomuladores();
     int numPdb = derived->soluciones_anteriores.size();
-//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
     for ( j = 1; j <= stage1_cycles(); ++j ) {
         trial->apply( pose ); // apply a large fragment insertion, accept with MC boltzmann probability
         if ( done(pose) ) {
@@ -1054,7 +1036,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     Size nr_cycles = stage2_cycles() / ( short_insert_region_ ? 2 : 1 );
     moves::TrialMoverOP trials( new moves::TrialMover( cycle, mc_ptr() ) );
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-//    derived->inicializarSolucionesAnteriores();
+
     derived->stage = "Stage 2";
     derived->umbral_apply = umbral_2;
     derived->resetAcomuladores();
@@ -1065,12 +1047,8 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     // NOTA: AQUÍ IMPRIMIR ESTADÍSTICAS
 
 
-
-//    derived->ultima_solucion_disponible = ultima_solucion_disponible;
-
     derived->imprimir_estadisticas(derived->countApplys, 2, numPdb);
     derived->resetAcomuladores();
-    // trials->imprimir_estadisticas();
     
     //is there a better way to find out how many steps ? for instance how many calls to scoring?
     return true; // as best guess
@@ -1210,9 +1188,9 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             derived->umbral_apply = umbral_4;
             derived->soluciones_anteriores = soluciones_anteriores;
             numPdb = derived->soluciones_anteriores.size();
-//            derived->inicializarSolucionesAnteriores();
+
             derived->resetAcomuladores();
-//            derived->ultima_solucion_disponible = ultima_solucion_disponible;
+
             moves::RepeatMover( stage4_mover( pose, kk, trials ), stage4_cycles() ).apply(pose);
             tr.Debug << "finished" << std::endl;
             recover_low( pose, STAGE_4 );
