@@ -38,7 +38,7 @@
 #include <dirent.h>
 #include <fstream>      // std::ofstream
 #include <iostream>
-
+#include <core/scoring/DistanceSMD.hh>
 #include <boost/numeric/conversion/cast.hpp>
 
 std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
@@ -456,16 +456,13 @@ void TrialMover::apply( pose::Pose & pose )
             }
             std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<< std::endl;
             
-//            std::cout << "Tamaño soluciones_anteriores: " << soluciones_anteriores.size()<< std::endl;
-//            for(it_pose = soluciones_anteriores.begin(); it_pose < soluciones_anteriores.end() && !reemplazo_rechazado; it_pose++){
-            
             for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
                 PoseOP current_pose = soluciones_anteriores[idx_pose];
+                DistanceSMDPtr calculo_smd = DistanceSMDPtr( new DistanceSMD(current_pose, current_pose->secstruct()));
+                //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
                 
-            //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
-//                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(**it_pose, pose);
-                
-                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
+//                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
+                core::Real rmsd_vs_actual = calculo_smd->distance_calculation(pose);
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
                 if (accepted_move == 1 && rmsd_vs_actual < umbral_apply) {
