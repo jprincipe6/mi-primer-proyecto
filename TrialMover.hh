@@ -24,7 +24,7 @@
 #include <protocols/moves/MoverStatistics.hh>
 
 #include <core/scoring/ScoreType.hh>
-
+#include <core/scoring/DistanceSMD.hh>
 #include <core/types.hh>
 
 #include <core/pose/Pose.fwd.hh>
