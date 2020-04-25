@@ -1009,8 +1009,12 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
     derived->umbral_apply = umbral_1;
     
+    
     if (paths_soluciones_pdbs.size() > 1) {
         std::cout << " INICIALIZANDO SMD " << " - " << umbral_1 << " - " << "Stage-1" <<std::endl;
+        pose_SMD = core::import_pose::pose_from_file( paths_soluciones_pdbs[0]);
+        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+        to_centroid.apply(*pose_SMD);
         derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     }
     
@@ -1062,6 +1066,9 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     
     if (paths_soluciones_pdbs.size() > 1) {
         std::cout << " INICIALIZANDO SMD " << " - " << umbral_2 << " - " << "Stage-2" <<std::endl;
+        pose_SMD = core::import_pose::pose_from_file( paths_soluciones_pdbs[0]);
+        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+        to_centroid.apply(*pose_SMD);
         derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     }
     
@@ -1118,6 +1125,9 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     
     if (paths_soluciones_pdbs.size() > 1) {
         std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
+        pose_SMD = core::import_pose::pose_from_file( paths_soluciones_pdbs[0]);
+        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+        to_centroid.apply(*pose_SMD);
         derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     }
     
@@ -1151,6 +1161,9 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     
                     if (paths_soluciones_pdbs.size() > 1) {
                         std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
+                        pose_SMD = core::import_pose::pose_from_file( paths_soluciones_pdbs[0]);
+                        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+                        to_centroid.apply(*pose_SMD);
                         derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
                     }
                     
@@ -1167,6 +1180,9 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     
                     if (paths_soluciones_pdbs.size() > 1) {
                         std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
+                        pose_SMD = core::import_pose::pose_from_file( paths_soluciones_pdbs[0]);
+                        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+                        to_centroid.apply(*pose_SMD);
                         derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
                     }
                     
@@ -1233,6 +1249,9 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             
             if (paths_soluciones_pdbs.size() > 1) {
                 std::cout << " INICIALIZANDO SMD " << " - " << umbral_4 << " - " << "Stage-4"<<std::endl;
+                pose_SMD = core::import_pose::pose_from_file( paths_soluciones_pdbs[0]);
+                protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+                to_centroid.apply(*pose_SMD);
                 derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
             }
             
