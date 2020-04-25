@@ -32,6 +32,7 @@
 #include <core/pose/Pose.fwd.hh>
 #include <core/scoring/ScoreFunction.fwd.hh>
 #include <core/scoring/ScoreType.hh>
+#include <core/scoring/DistanceSMD.hh>
 
 #include <protocols/abinitio/Protocol.hh>
 #include <protocols/moves/TrialMover.fwd.hh>
@@ -400,7 +401,8 @@ private:
     core::scoring::ScoreFunctionOP score_stage4rot_;  //score_cenrot
     core::scoring::ScoreFunctionOP score_stage4rot_sc_;  //score_cenrot
     core::scoring::ScoreFunctionOP score_stage5_; //score3 //vats lets try score3 first
-
+    core::pose::PoseOP pose_SMD;
+    
     std::vector<std::string> tokenize(const std::string& s, char c);
     
     //@brief flags

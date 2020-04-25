@@ -223,6 +223,7 @@ public:
     int countApplys;
     double umbral_apply;
     std::string stage;
+    DistanceSMDPtr calculo_smd;
 protected:
     std::vector<std::string> paths_soluciones_pdbs;
     

@@ -63,7 +63,7 @@ public:
   build_inter_distances_of_straight();
 
   void
-  build_inter_distance_for_an_individual(core::pose::PoseOP pose_ind_1, std::vector<double>& inter_distance_individual_1);
+  build_inter_distance_for_an_individual(core::pose::Pose pose_ind_1, std::vector<double>& inter_distance_individual_1);
 
 };
 

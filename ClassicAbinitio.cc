@@ -34,6 +34,8 @@
 #include <core/scoring/rms_util.hh>
 #include <core/scoring/constraints/ConstraintSet.hh>
 #include <core/scoring/constraints/ConstraintSet.fwd.hh>
+#include <core/pose/PDBInfo.hh>
+#include <core/import_pose/import_pose.hh>
 
 #include <protocols/moves/Mover.hh>
 #include <protocols/simple_moves/BackboneMover.hh>
@@ -59,6 +61,7 @@
 
 // Utility headers
 #include <utility/exit.hh>
+#include <utility/vector1.hh>
 #include <utility/vector1.fwd.hh>
 #include <utility/pointer/ReferenceCount.hh>
 #include <utility/io/ozstream.hh>
@@ -66,9 +69,12 @@
 #include <basic/prof.hh>
 #include <basic/Tracer.hh>
 #include <basic/options/option.hh>
+#include <basic/options/util.hh>
 #include <basic/options/keys/abinitio.OptionKeys.gen.hh>
 #include <basic/options/keys/run.OptionKeys.gen.hh>
 #include <basic/options/keys/templates.OptionKeys.gen.hh>
+#include <basic/options/keys/OptionKeys.hh>
+#include <basic/options/keys/in.OptionKeys.gen.hh>
 
 //// C++ headers
 #include <cstdlib>
@@ -180,6 +186,7 @@ ClassicAbinitio::ClassicAbinitio(
     BaseClass::type( "ClassicAbinitio" );
     get_checkpoints().set_type("ClassicAbinitio");
     using namespace basic::options;
+    using namespace basic::options::OptionKeys;
     simple_moves::ClassicFragmentMoverOP bms, bml, sms;
     using simple_moves::FragmentCostOP;
     using simple_moves::ClassicFragmentMover;
@@ -225,10 +232,17 @@ ClassicAbinitio::ClassicAbinitio(
     close_chbrk_ = false;
 
     stage4_cycles_pack_rate_ = 0.25;
- /*   ultima_solucion_disponible = get_paths_pdbs_from_dir("./soluciones_1elwA/").size();
-    if (ultima_solucion_disponible > 0) {
-          ultima_solucion_disponible += -1;
-      }*/
+
+    
+    utility::vector1<std::string> files = option[in::file::s]();
+    const char *path_input_local = "./soluciones_1elwA";
+    std::vector<std::string> files_pdbs = get_paths_pdbs_from_dir(path_input_local);
+    std::cout << "INICIALIZAR CONSTRUCTOR SMD" << std::endl;
+    if (files_pdbs.size() > 1) {
+        pose_SMD = core::import_pose::pose_from_file( files_pdbs[0]);
+        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+        to_centroid.apply(*pose_SMD);
+    }
 }
 
 /// @details Call parent's copy constructor and perform a shallow
@@ -994,6 +1008,12 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     moves::MoverOP trial( stage1_mover( pose, trial_large() ) );
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
     derived->umbral_apply = umbral_1;
+    
+    if (paths_soluciones_pdbs.size() > 1) {
+        std::cout << " INICIALIZANDO SMD " << " - " << umbral_1 << " - " << "Stage-1" <<std::endl;
+        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
+    }
+    
     derived->stage = "Stage 1";
     Size j;
     derived->soluciones_anteriores = soluciones_anteriores;
@@ -1039,6 +1059,12 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
 
     derived->stage = "Stage 2";
     derived->umbral_apply = umbral_2;
+    
+    if (paths_soluciones_pdbs.size() > 1) {
+        std::cout << " INICIALIZANDO SMD " << " - " << umbral_2 << " - " << "Stage-2" <<std::endl;
+        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
+    }
+    
     derived->resetAcomuladores();
     derived->soluciones_anteriores = soluciones_anteriores;
     int numPdb = derived->soluciones_anteriores.size();
@@ -1089,6 +1115,12 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     int numPdb = derived->soluciones_anteriores.size();
     derived->stage = "Stage 3";
     derived->umbral_apply = umbral_3;
+    
+    if (paths_soluciones_pdbs.size() > 1) {
+        std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
+        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
+    }
+    
     derived->resetAcomuladores();
 
 
@@ -1116,6 +1148,12 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     int numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
                     derived->umbral_apply = umbral_3;
+                    
+                    if (paths_soluciones_pdbs.size() > 1) {
+                        std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
+                        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
+                    }
+                    
                     derived->resetAcomuladores();
                     convergence_checker->set_trials( stage3_trials ); //can be removed late
                     moves::WhileMover( stage3_trials, stage3_cycles(), convergence_checker ).apply( pose );
@@ -1126,6 +1164,12 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     int numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
                     derived->umbral_apply = umbral_3;
+                    
+                    if (paths_soluciones_pdbs.size() > 1) {
+                        std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
+                        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
+                    }
+                    
                     derived->resetAcomuladores();
                     moves::RepeatMover( stage3_trials, stage3_cycles() ).apply( pose );
                 }
@@ -1186,6 +1230,12 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
             derived->stage = "Stage 4";
             derived->umbral_apply = umbral_4;
+            
+            if (paths_soluciones_pdbs.size() > 1) {
+                std::cout << " INICIALIZANDO SMD " << " - " << umbral_4 << " - " << "Stage-4"<<std::endl;
+                derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
+            }
+            
             derived->soluciones_anteriores = soluciones_anteriores;
             numPdb = derived->soluciones_anteriores.size();
 

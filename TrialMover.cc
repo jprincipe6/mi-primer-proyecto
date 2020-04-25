@@ -19,17 +19,23 @@
 #include <core/scoring/ScoreFunction.hh>
 #include <basic/Tracer.hh>
 #include <utility/tag/Tag.hh>
+#include <core/pose/PDBInfo.hh>
+#include <core/import_pose/import_pose.hh>
+#include <core/scoring/rms_util.hh>
 
 #include <protocols/moves/MonteCarlo.hh>
 #include <protocols/moves/Mover.hh>
-#include <basic/datacache/DataMap.hh>
+#include <protocols/simple_moves/SwitchResidueTypeSetMover.hh>
+#include <basic/options/option.hh>
+#include <basic/options/util.hh>
+#include <basic/options/keys/OptionKeys.hh>
+#include <basic/options/keys/in.OptionKeys.gen.hh>
 
 // Utility headers
 
 // C++ headers
 #include <string>
-#include <core/import_pose/import_pose.hh>
-#include <core/scoring/rms_util.hh>
+#include <basic/datacache/DataMap.hh>
 #include <utility/vector0.hh>
 #include <utility/excn/Exceptions.hh>
 #include <utility/vector1.hh>
@@ -38,7 +44,6 @@
 #include <dirent.h>
 #include <fstream>      // std::ofstream
 #include <iostream>
-#include <core/scoring/DistanceSMD.hh>
 #include <boost/numeric/conversion/cast.hpp>
 
 std::vector<std::string> get_paths_pdbs_from_dir(const char* path){
@@ -194,13 +199,10 @@ stats_type_( all_stats )
     using namespace core;
     using namespace core::import_pose;
     using namespace pose;
-    std::vector<PoseOP>::iterator it_pose;
-    std::vector<std::string>::iterator it;
-    
+    using namespace basic::options;
+    using namespace basic::options::OptionKeys;
     mover_ = mover_in;
     mc_ = mc_in;
-    
-    
     
     rmsd_vs_actual_acc = 0;
     cont_total_rmsd_vs_actual_acc = 0;
@@ -208,7 +210,7 @@ stats_type_( all_stats )
     acomuladorDeAceptadosCustom = 0;
     acomuladorDeAceptadosNormal = 0;
     countApplys = 0;
-    
+                                                                                                
 }
 
 // Copy constructor
@@ -454,18 +456,19 @@ void TrialMover::apply( pose::Pose & pose )
             }else{
                 inicio = 0;
             }
-            std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<< std::endl;
+            std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<<std::endl;
             
             for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
                 PoseOP current_pose = soluciones_anteriores[idx_pose];
-                DistanceSMDPtr calculo_smd = DistanceSMDPtr( new DistanceSMD(current_pose, current_pose->secstruct()));
+                //calculo_smd = DistanceSMDPtr( new DistanceSMD(current_pose, current_pose->secstruct()));
                 //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
-                
-//                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
-                core::Real rmsd_vs_actual = calculo_smd->distance_calculation(pose);
-                rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
+
+                core::Real SMD_vs_actual = calculo_smd->current_distance_calculation(*current_pose, pose);
+
+                rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
-                if (accepted_move == 1 && rmsd_vs_actual < umbral_apply) {
+
+                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
                     reemplazo_rechazado = true;
                     break;
                 }
