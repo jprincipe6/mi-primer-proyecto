@@ -71,11 +71,11 @@ DistanceSMD::build_inter_distances_of_straight() {
 void
 DistanceSMD::build_inter_distance_for_an_individual(core::pose::Pose pose_ind, std::vector<double>& inter_distance_individual) {
   inter_distance_individual.resize(0);
-  std::cout << "DENTRO DE LA FUNCION: build_inter_distance_for_an_individual()" << std::endl;
+//  std::cout << "DENTRO DE LA FUNCION: build_inter_distance_for_an_individual()" << std::endl;
   for ( int i = 0; i < selected_residues_for_rmsd.size(); ++i)  {
-    std::cout << "DENTRO DEL PRIMER BUCLE: selected_residues_for_rmsd.size()" << std::endl;
+//    std::cout << "DENTRO DEL PRIMER BUCLE: selected_residues_for_rmsd.size()" << std::endl;
     for (int j  = i + 1; j < selected_residues_for_rmsd.size(); j++) {
-      std::cout << "DENTRO DEL SEGUNDO BUCLE: selected_residues_for_rmsd.size()" << std::endl;
+//      std::cout << "DENTRO DEL SEGUNDO BUCLE: selected_residues_for_rmsd.size()" << std::endl;
       core::Size res_num_1 = core::Size(selected_residues_for_rmsd[i]);
       core::Size res_num_2 = core::Size(selected_residues_for_rmsd[j]);
       core::PointPosition calpha1_pos  = pose_ind.residue(res_num_1).xyz("CA");
@@ -84,11 +84,11 @@ DistanceSMD::build_inter_distance_for_an_individual(core::pose::Pose pose_ind, s
       // normalizar esta distancia dividiendo por al distancia maxima ( la misma dist para la proteina estirada)
       //inter_distance_individual.push_back( std::sqrt( std::pow(dist, 2) / 2)  );
       if (inter_dist_norm_max[std::pair<int, int>(res_num_1, res_num_2)] == 0) {
-          std::cout << "IF - dist " << dist << " norm " << 0 << " max " << inter_dist_norm_max[std::pair<int, int>(res_num_1, res_num_2)] << std::endl;
+//          std::cout << "IF - dist " << dist << " norm " << 0 << " max " << inter_dist_norm_max[std::pair<int, int>(res_num_1, res_num_2)] << std::endl;
           inter_distance_individual.push_back(0);
       } else {
           double normalized_dist = dist / ( NORM_MULTIPLIED_FACTOR * inter_dist_norm_max[std::pair<int, int>(res_num_1, res_num_2)] );
-          std::cout << "ELSE - dist " << dist << " norm " << normalized_dist << " max " << inter_dist_norm_max[std::pair<int, int>(res_num_1, res_num_2)] << std::endl;
+//          std::cout << "ELSE - dist " << dist << " norm " << normalized_dist << " max " << inter_dist_norm_max[std::pair<int, int>(res_num_1, res_num_2)] << std::endl;
           inter_distance_individual.push_back( normalized_dist );
       }
     }
@@ -114,13 +114,13 @@ DistanceSMD::distance_calculation(core::pose::Pose& pose) {
 double
 DistanceSMD::current_distance_calculation(core::pose::Pose& pose_1, core::pose::Pose& pose_2) {
   double sum = 0.0;
-  std::cout << "DENTRO DE LA FUNCION: current_distance_calculation()" << std::endl;
+//  std::cout << "DENTRO DE LA FUNCION: current_distance_calculation()" << std::endl;
   std::vector<double> inter_distance_individual_1, inter_distance_individual_2;
   build_inter_distance_for_an_individual(pose_1, inter_distance_individual_1);
   build_inter_distance_for_an_individual(pose_2, inter_distance_individual_2);
     
   
-  std::cout << "BUCLE: inter_distance_individual_1.size()" << std::endl;
+//  std::cout << "BUCLE: inter_distance_individual_1.size()" << std::endl;
   for ( int i = 0; i < inter_distance_individual_1.size(); ++i)  {
     sum += std::pow( inter_distance_individual_1[i] - inter_distance_individual_2[i], 2);
   }
