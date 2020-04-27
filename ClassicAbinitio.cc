@@ -234,8 +234,9 @@ ClassicAbinitio::ClassicAbinitio(
     stage4_cycles_pack_rate_ = 0.25;
 
     
-    
-    pose_SMD = core::import_pose::pose_from_file( "/Users/principe/Documents/Rosetta/rosetta_bin_mac_2019.35.60890_bundle/demos/public/abinitio_SMD_1/inicializar_SMD/solucion_anterior_1.pdb");
+//    utility::vector1<std::string> files = option[in::file::s]();
+//    std::string file = files[0];
+    pose_SMD = core::import_pose::pose_from_file("../common/input_files/1elw.pdb");
     protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
     to_centroid.apply(*pose_SMD);
 //    }
