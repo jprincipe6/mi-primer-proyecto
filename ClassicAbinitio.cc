@@ -1006,15 +1006,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trial);
     derived->umbral_apply = umbral_1;
     
-    
-//    if (paths_soluciones_pdbs.size() > 1) {
-//        std::cout << " INICIALIZANDO SMD " << " - " << umbral_1 << " - " << "Stage-1" <<std::endl;
-//        std::cout << "Ruta : " << (paths_soluciones_pdbs[0]) << std::endl;
-//        pose_SMD = core::import_pose::pose_from_file( "solucion_anterior_1.pdb");
-//        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-//        to_centroid.apply(*pose_SMD);
-        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-//    }
+    derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     
     derived->stage = "Stage 1";
     Size j;
@@ -1062,13 +1054,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     derived->stage = "Stage 2";
     derived->umbral_apply = umbral_2;
     
-//    if (paths_soluciones_pdbs.size() > 1) {
-//        std::cout << " INICIALIZANDO SMD " << " - " << umbral_2 << " - " << "Stage-2" <<std::endl;
-//        pose_SMD = core::import_pose::pose_from_file("solucion_anterior_1.pdb");
-//        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-//        to_centroid.apply(*pose_SMD);
-        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-//    }
+    derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     
     derived->resetAcomuladores();
     derived->soluciones_anteriores = soluciones_anteriores;
@@ -1121,13 +1107,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     derived->stage = "Stage 3";
     derived->umbral_apply = umbral_3;
     
-//    if (paths_soluciones_pdbs.size() > 1) {
-//        std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
-//        pose_SMD = core::import_pose::pose_from_file("solucion_anterior_1.pdb");
-//        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-//        to_centroid.apply(*pose_SMD);
-        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-//    }
+    derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     
     derived->resetAcomuladores();
 
@@ -1157,13 +1137,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     derived->stage = "Stage 3";
                     derived->umbral_apply = umbral_3;
                     
-//                    if (paths_soluciones_pdbs.size() > 1) {
-//                        std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
-//                        pose_SMD = core::import_pose::pose_from_file("solucion_anterior_1.pdb");
-//                        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-//                        to_centroid.apply(*pose_SMD);
-                        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-//                    }
+                    derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
                     
                     derived->resetAcomuladores();
                     convergence_checker->set_trials( stage3_trials ); //can be removed late
@@ -1176,13 +1150,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     derived->stage = "Stage 3";
                     derived->umbral_apply = umbral_3;
                     
-//                    if (paths_soluciones_pdbs.size() > 1) {
-//                        std::cout << " INICIALIZANDO SMD " << " - " << umbral_3 << " - " << "Stage-3"<<std::endl;
-//                        pose_SMD = core::import_pose::pose_from_file("solucion_anterior_1.pdb");
-//                        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-//                        to_centroid.apply(*pose_SMD);
-                        derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-//                    }
+                    derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
                     
                     derived->resetAcomuladores();
                     moves::RepeatMover( stage3_trials, stage3_cycles() ).apply( pose );
@@ -1245,14 +1213,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             derived->stage = "Stage 4";
             derived->umbral_apply = umbral_4;
             
-//            if (paths_soluciones_pdbs.size() > 1) {
-//                std::cout << " INICIALIZANDO SMD " << " - " << umbral_4 << " - " << "Stage-4"<<std::endl;
-//                std::cout << "Ruta : " << (paths_soluciones_pdbs[0]) << std::endl;
-//                pose_SMD = core::import_pose::pose_from_file("solucion_anterior_1.pdb");
-//                protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-//                to_centroid.apply(*pose_SMD);
-                derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-//            }
+            derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
             
             derived->soluciones_anteriores = soluciones_anteriores;
             numPdb = derived->soluciones_anteriores.size();

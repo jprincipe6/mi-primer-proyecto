@@ -460,14 +460,9 @@ void TrialMover::apply( pose::Pose & pose )
             
             for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
                 PoseOP current_pose = soluciones_anteriores[idx_pose];
-//                if (soluciones_anteriores.size() < 2) {
-//                    calculo_smd = DistanceSMDPtr( new DistanceSMD(current_pose, current_pose->secstruct()));
-//                }
-                //calculo_smd = DistanceSMDPtr( new DistanceSMD(current_pose, current_pose->secstruct()));
-                //Para cada POSE de entrada se calcula la distancia RMSD(pose anterior) a la actual
 
                 core::Real SMD_vs_actual = calculo_smd->current_distance_calculation(*current_pose, pose);
-
+                std::cout << "VALOR SMD " << SMD_vs_actual << std::endl;
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
 
