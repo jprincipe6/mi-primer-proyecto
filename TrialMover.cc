@@ -442,7 +442,13 @@ void TrialMover::apply( pose::Pose & pose )
 
     if(umbral_apply > 0){
         
-        accepted_move = mc_->boltzmann( pose, mover_->type() );
+        if (stage.compare("Stage 4") && soluciones_anteriores.size() > 0) {
+            mc_->set_temperature(1000000000); //aumentamos la temperatura
+            accepted_move = mc_->boltzmann( pose, mover_->type() );
+        }else{
+            accepted_move = mc_->boltzmann( pose, mover_->type() );
+        }
+        
         bool reemplazo_rechazado = false;
         
         if (accepted_move == 1) {
@@ -466,7 +472,8 @@ void TrialMover::apply( pose::Pose & pose )
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
 
-                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
+//                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
+                    if (accepted_move == 1 && SMD_vs_actual > umbral_apply && SMD_vs_actual < 0.007) {
                     reemplazo_rechazado = true;
                     break;
                 }
