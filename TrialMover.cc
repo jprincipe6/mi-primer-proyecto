@@ -433,30 +433,30 @@ void TrialMover::apply( pose::Pose & pose )
     
     
     bool accepted_move = false;
+    int inicio;
+    bool reemplazo_rechazado = false;
     std::vector<std::string>::iterator it;
     //std::cout << umbralLimite<< std::endl;
     //Contador de Applys
     countApplys++;
     std::cout << "===== Umbral " << "- " << stage << " =====" << std::endl;
     std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
-
-    if(umbral_apply > 0){
+    std::string fase4 = "Stage 4";
+    if(soluciones_anteriores.size() > 0){
         
-        if (stage.compare("Stage 4") && soluciones_anteriores.size() > 0) {
-            mc_->set_temperature(1000000000); //aumentamos la temperatura
+//        if ((!stage.compare(fase4)) && (soluciones_anteriores.size() > 0)) {
+//             std::cout << "===== DENTRO " << "- " << stage << " =====" << std::endl;
+//            mc_->set_temperature(1000000000); //aumentamos la temperatura
+//            accepted_move = mc_->boltzmann( pose, mover_->type() );
+//        }else{
             accepted_move = mc_->boltzmann( pose, mover_->type() );
-        }else{
-            accepted_move = mc_->boltzmann( pose, mover_->type() );
-        }
-        
-        bool reemplazo_rechazado = false;
+//        }
         
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
         }
-
-        if (soluciones_anteriores.size() > 0){
-            int inicio;
+        
+        if (umbral_apply !=0) {
             if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
                 inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
             }else{
@@ -472,8 +472,8 @@ void TrialMover::apply( pose::Pose & pose )
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
 
-//                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
-                    if (accepted_move == 1 && SMD_vs_actual > umbral_apply && SMD_vs_actual < 0.007) {
+                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
+    //                    if (accepted_move == 1 && SMD_vs_actual > umbral_apply && SMD_vs_actual < 0.007) {
                     reemplazo_rechazado = true;
                     break;
                 }
@@ -486,14 +486,15 @@ void TrialMover::apply( pose::Pose & pose )
             }else {
                 pose = pose_anterior;
             }
-        }// fin (soluciones_anteriores.size() > 0)
-
-    } else {
+        }else{
+            pose = pose_anterior;
+        }
+        
+    } else { // Encaso de que el umbral= 0 ó soluciones_anteriores <= 0
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
         }
-        
     }// fin (umbral_apply > 0)
     
     if ( keep_stats_type() == all_stats ) {
