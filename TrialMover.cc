@@ -442,21 +442,25 @@ void TrialMover::apply( pose::Pose & pose )
     std::cout << "===== Umbral " << "- " << stage << " =====" << std::endl;
     std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
     std::string fase4 = "Stage 4";
-    if(soluciones_anteriores.size() > 0){
+    if(umbral_apply != 0){
         
 //        if ((!stage.compare(fase4)) && (soluciones_anteriores.size() > 0)) {
 //             std::cout << "===== DENTRO " << "- " << stage << " =====" << std::endl;
 //            mc_->set_temperature(1000000000); //aumentamos la temperatura
 //            accepted_move = mc_->boltzmann( pose, mover_->type() );
 //        }else{
-            accepted_move = mc_->boltzmann( pose, mover_->type() );
+//            accepted_move = mc_->boltzmann( pose, mover_->type() );
 //        }
         
-        if (accepted_move == 1) {
-            acomuladorDeAceptadosNormal += 1;
-        }
+//        if (accepted_move == 1) {
+//            acomuladorDeAceptadosNormal += 1;
+//        }
         
-        if (umbral_apply !=0) {
+        if (soluciones_anteriores.size() > 0) {
+            accepted_move = mc_->boltzmann( pose, mover_->type() );
+            if (accepted_move == 1) {
+                acomuladorDeAceptadosNormal += 1;
+            }
             if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
                 inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
             }else{
@@ -486,11 +490,14 @@ void TrialMover::apply( pose::Pose & pose )
             }else {
                 pose = pose_anterior;
             }
-        }else{
-            pose = pose_anterior;
-        }
+        }else{//empieza el caso soluciones-anteriores =0; Rosetta
+            accepted_move = mc_->boltzmann( pose, mover_->type() );
+            if (accepted_move == 1) {
+                acomuladorDeAceptadosNormal += 1;
+            }
+        }// fin para el caso soluciones_anteriores = 0
         
-    } else { // Encaso de que el umbral= 0 ó soluciones_anteriores <= 0
+    } else { // empieza el caso umbral == 0; Rosetta
         accepted_move = mc_->boltzmann( pose, mover_->type() );
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
