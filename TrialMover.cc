@@ -439,9 +439,10 @@ void TrialMover::apply( pose::Pose & pose )
     //std::cout << umbralLimite<< std::endl;
     //Contador de Applys
     countApplys++;
-    std::cout << "===== Umbral " << "- " << stage << " =====" << std::endl;
+    std::cout << "===== Satage " << "- " << stage << " =====" << std::endl;
     std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
     std::string fase4 = "Stage 4";
+    std::cout << "==== apply fragment boltzmann ==== " << "Umbral límite: " << umbral_apply << "===== Satage " << "- " << stage<< std::endl;
     if(umbral_apply != 0){
         
 //        if ((!stage.compare(fase4)) && (soluciones_anteriores.size() > 0)) {
@@ -458,6 +459,7 @@ void TrialMover::apply( pose::Pose & pose )
         
         if (soluciones_anteriores.size() > 0) {
             accepted_move = mc_->boltzmann( pose, mover_->type() );
+            std::cout << "boltzmann 1 " << std::endl;
             if (accepted_move == 1) {
                 acomuladorDeAceptadosNormal += 1;
             }
@@ -471,13 +473,17 @@ void TrialMover::apply( pose::Pose & pose )
             for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
                 PoseOP current_pose = soluciones_anteriores[idx_pose];
 
-                core::Real SMD_vs_actual = calculo_smd->current_distance_calculation(*current_pose, pose);
-                std::cout << "VALOR SMD " << SMD_vs_actual << std::endl;
-                rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
+                //core::Real SMD_vs_actual = calculo_smd->current_distance_calculation(*current_pose, pose);
+                
+                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
+                //std::cout << "VALOR SMD " << SMD_vs_actual << std::endl;
+                std::cout << "VALOR SMD " << rmsd_vs_actual << std::endl;
+                //rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
+                rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
 
-                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
-    //                    if (accepted_move == 1 && SMD_vs_actual > umbral_apply && SMD_vs_actual < 0.007) {
+//                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
+                if (accepted_move == 1 && rmsd_vs_actual < umbral_apply) {
                     reemplazo_rechazado = true;
                     break;
                 }
@@ -488,10 +494,12 @@ void TrialMover::apply( pose::Pose & pose )
                 acomuladorDeAceptadosCustom +=1;
                 std::cout << "Acomulador custom " << acomuladorDeAceptadosCustom << " Umbral apply: " << umbral_apply << std::endl;
             }else {
+                std::cout<< "deshace boltzmann "<< std::endl;
                 pose = pose_anterior;
             }
         }else{//empieza el caso soluciones-anteriores =0; Rosetta
             accepted_move = mc_->boltzmann( pose, mover_->type() );
+            std::cout << "boltzmann 2 " << std::endl;
             if (accepted_move == 1) {
                 acomuladorDeAceptadosNormal += 1;
             }
@@ -499,6 +507,7 @@ void TrialMover::apply( pose::Pose & pose )
         
     } else { // empieza el caso umbral == 0; Rosetta
         accepted_move = mc_->boltzmann( pose, mover_->type() );
+        std::cout << "boltzmann 3 " << std::endl;
         if (accepted_move == 1) {
             acomuladorDeAceptadosNormal += 1;
         }
