@@ -311,19 +311,17 @@ ClassicAbinitio::clone() const
     return utility::pointer::make_shared< ClassicAbinitio >( *this );
 }
 
-//void imprimirTiemposPorNStructs(float time, float t1, float t2){
-void imprimirTiemposPorNStructs(float time){
-    std::ofstream myfile;
-    myfile.open ("salida_time.txt", std::ios::out | std::ios::app );
-    
-    if (myfile.is_open())
-    {
-//        myfile  << t2 << " - " << t1 <<" = "<< time << std::endl;
-        myfile  << time << std::endl;
-    }else {
-        std::cout << "Unable to open file";
-    }
-}
+//void imprimirTiemposPorNStructs(float time){
+//    std::ofstream myfile;
+//    myfile.open ("salida_time.txt", std::ios::out | std::ios::app );
+//    
+//    if (myfile.is_open())
+//    {
+//        myfile  << time << std::endl;
+//    }else {
+//        std::cout << "Unable to open file";
+//    }
+//}
 struct Umbrales_Limites {
     double umbral_stage_1;
     double umbral_stage_2;
@@ -607,13 +605,13 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 
         
         pose.dump_pdb("./soluciones_1elwA/solucion_anterior_"+std::to_string(variable_nombre)+".pdb");
-        auto t2 = std::chrono::high_resolution_clock::now();
         
-        float tt1 = std::chrono::duration_cast<std::chrono::milliseconds>(t1.time_since_epoch()).count();
-        float tt2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2.time_since_epoch()).count();
-        float f_secs = (tt2-tt1);
-//        imprimirTiemposPorNStructs(f_secs, tt1, tt2);
-        imprimirTiemposPorNStructs(f_secs);
+//        auto t2 = std::chrono::high_resolution_clock::now();
+//
+//        float tt1 = std::chrono::duration_cast<std::chrono::milliseconds>(t1.time_since_epoch()).count();
+//        float tt2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2.time_since_epoch()).count();
+//        float f_secs = (tt2-tt1);
+//        imprimirTiemposPorNStructs(f_secs);
     }
     
     if ( !bSkipStage5_ ) {
