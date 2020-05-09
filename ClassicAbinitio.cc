@@ -314,7 +314,7 @@ ClassicAbinitio::clone() const
 //void imprimirTiemposPorNStructs(float time){
 //    std::ofstream myfile;
 //    myfile.open ("salida_time.txt", std::ios::out | std::ios::app );
-//    
+//
 //    if (myfile.is_open())
 //    {
 //        myfile  << time << std::endl;
@@ -377,7 +377,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
      umbral_2 = 0;
      umbral_3 = 0;
      umbral_4 = 0;
-    
+     const char *path_input_local = "./soluciones_1elwA";
      std::vector<std::string> elems = getUmbrales();
     if(elems.size() > 1){
         umbral_1= std::stod(elems[0]);
@@ -393,14 +393,36 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
 
       if (umbral_1 > 0 || umbral_2 > 0|| umbral_3 > 0 || umbral_4 > 0) {
           soluciones_anteriores.resize(0);
-            const char *path_input_local = "./soluciones_1elwA";
-            paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input_local);
-            std::vector<std::string>::iterator it;
-            for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
-                std::string path_file_pdb = std::string (path_input_local) + std::string("/") +std::string(*it);
-                pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
-                soluciones_anteriores.push_back(ejecucion_previa);
-            }
+          const char *path_soluciones_anteriores_S2 ="./soluciones_anteriores_1elwA_salida_S2";
+          std::vector<std::string>  list_soluciones_anteriores_S2 = get_paths_pdbs_from_dir(path_soluciones_anteriores_S2);
+            const char *path_soluciones_anteriores_S3 ="./soluciones_anteriores_1elwA_salida_S3";
+            std::vector<std::string>  list_soluciones_anteriores_S3 = get_paths_pdbs_from_dir(path_soluciones_anteriores_S3);
+          
+        paths_soluciones_pdbs = get_paths_pdbs_from_dir(path_input_local);
+          if (paths_soluciones_pdbs.size() > 0){
+              std::vector<std::string>::iterator it;
+              for (it= paths_soluciones_pdbs.begin(); it < paths_soluciones_pdbs.end(); it++) {
+                  std::string path_file_pdb = std::string (path_input_local) + std::string("/") +std::string(*it);
+                  pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+                  soluciones_anteriores.push_back(ejecucion_previa);
+              }
+          }
+          if (list_soluciones_anteriores_S2.size() > 0){
+              std::vector<std::string>::iterator it;
+              for (it= list_soluciones_anteriores_S2.begin(); it < list_soluciones_anteriores_S2.end(); it++) {
+                  std::string path_file_pdb = std::string (path_soluciones_anteriores_S2) + std::string("/") +std::string(*it);
+                  pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+                  soluciones_anteriores_S2.push_back(ejecucion_previa);
+              }
+          }
+          if (list_soluciones_anteriores_S3.size() > 0){
+              std::vector<std::string>::iterator it;
+              for (it= list_soluciones_anteriores_S3.begin(); it < list_soluciones_anteriores_S3.end(); it++) {
+                  std::string path_file_pdb = std::string (path_soluciones_anteriores_S3) + std::string("/") +std::string(*it);
+                  pose::PoseOP ejecucion_previa = core::import_pose::pose_from_file(path_file_pdb);
+                  soluciones_anteriores_S3.push_back(ejecucion_previa);
+              }
+          }
         }
      
      /* fin de inicializar soluciones anteriores */
@@ -510,6 +532,9 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
             output_debug_structure( pose, "stage2" );
             tr << "Timeperstep: " << (double(endtime) - starttime )/(CLOCKS_PER_SEC ) << std::endl;
         }
+        
+        int variable_nombre = get_paths_pdbs_from_dir("./soluciones_anteriores_1elwA_salida_S2/").size() + 1;
+        pose.dump_pdb("./soluciones_anteriores_1elwA_salida_S2/solucion_anterior_S2_"+std::to_string(variable_nombre)+".pdb");
     } //bSkipStage2
 
     if ( !success ) {
@@ -551,7 +576,8 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
             tr << "Timeperstep: " << (double(endtime) - starttime )/( CLOCKS_PER_SEC) << std::endl;
         }
 
-        //  pose.dump_pdb("stage3.pdb");
+        int variable_nombre = get_paths_pdbs_from_dir("./soluciones_anteriores_1elwA_salida_S3/").size() + 1;
+        pose.dump_pdb("./soluciones_anteriores_1elwA_salida_S3/solucion_anterior_S3_"+std::to_string(variable_nombre)+".pdb");
 
     }
 
@@ -598,12 +624,8 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
     
         
         // NOTA: aquí podemos modificar el nombre del pdb FINAL
+        
         int variable_nombre = get_paths_pdbs_from_dir("./soluciones_1elwA/").size() + 1;
-        
-        // a largo plazo: imprimir en un fichero los valores de nombre de pdb - score - rmsd
-        //fprint(fichero, "solucion_anterior_"+std::to_string(variable_nombre)+".pdb \t" + score + "\t" + rmsd + "\n");
-
-        
         pose.dump_pdb("./soluciones_1elwA/solucion_anterior_"+std::to_string(variable_nombre)+".pdb");
         
 //        auto t2 = std::chrono::high_resolution_clock::now();
@@ -1055,7 +1077,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     
     derived->resetAcomuladores();
-    derived->soluciones_anteriores = soluciones_anteriores;
+    derived->soluciones_anteriores = soluciones_anteriores_S2;
     int numPdb = derived->soluciones_anteriores.size();
     moves::RepeatMover( stage2_mover( pose, trials ), nr_cycles ).apply(pose);
 
@@ -1100,7 +1122,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 
     moves::TrialMoverOP trials = trial_large();
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
-    derived->soluciones_anteriores = soluciones_anteriores;
+    derived->soluciones_anteriores = soluciones_anteriores_S3;
     int numPdb = derived->soluciones_anteriores.size();
     derived->stage = "Stage 3";
     derived->umbral_apply = umbral_3;
@@ -1130,7 +1152,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                 if ( convergence_checker ) {
                     moves::TrialMoverOP stage3_trials = stage3_mover( pose, lct1, lct2, trials );
                     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(stage3_trials);
-                    derived->soluciones_anteriores = soluciones_anteriores;
+                    derived->soluciones_anteriores = soluciones_anteriores_S3;
                     int numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
                     derived->umbral_apply = umbral_3;
@@ -1143,7 +1165,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                 } else {    //no convergence check -> no WhileMover
                     moves::TrialMoverOP stage3_trials = stage3_mover( pose, lct1, lct2, trials );
                     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(stage3_trials);
-                    derived->soluciones_anteriores = soluciones_anteriores;
+                    derived->soluciones_anteriores = soluciones_anteriores_S3;
                     int numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
                     derived->umbral_apply = umbral_3;

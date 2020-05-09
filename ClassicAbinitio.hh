@@ -215,6 +215,8 @@ public:
     static void register_options();
     int ultima_solucion_disponible;
     std::vector<core::pose::PoseOP> soluciones_anteriores;
+    std::vector<core::pose::PoseOP> soluciones_anteriores_S2;
+    std::vector<core::pose::PoseOP> soluciones_anteriores_S3;
     std::vector<std::string> paths_soluciones_pdbs;
 protected:
     //@brief construct default monto-carlo object

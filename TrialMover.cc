@@ -477,12 +477,12 @@ void TrialMover::apply( pose::Pose & pose )
                 
                 core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
                 //std::cout << "VALOR SMD " << SMD_vs_actual << std::endl;
-                std::cout << "VALOR SMD " << rmsd_vs_actual << std::endl;
+                std::cout << "FASE-"<< stage << " VALOR RMSD " << rmsd_vs_actual <<std::endl;
                 //rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
                 rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
                 cont_total_rmsd_vs_actual_acc += 1;
 
-//                if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
+                //if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
                 if (accepted_move == 1 && rmsd_vs_actual < umbral_apply) {
                     reemplazo_rechazado = true;
                     break;
