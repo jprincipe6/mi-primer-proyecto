@@ -389,6 +389,99 @@ void TrialMover::imprimir_estadisticas(int numApplys, int stage, int numPdb)
 
     
 }
+void TrialMover::getCalculationRosetta(pose::Pose & pose, bool accepted_move){
+    accepted_move = mc_->boltzmann( pose, mover_->type() );
+
+    if (accepted_move == 1) {
+        acomuladorDeAceptadosNormal += 1;
+    }
+}
+
+core::Real TrialMover::calculateRMSD(core::pose::PoseOP current_pose, Pose & pose){
+    core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
+    std::cout << "FASE-"<< stage << " VALOR RMSD " << rmsd_vs_actual <<std::endl;
+    rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
+    cont_total_rmsd_vs_actual_acc += 1;
+    return rmsd_vs_actual;
+}
+
+core::Real TrialMover::calculateSMD(core::pose::PoseOP current_pose, Pose & pose){
+    core::Real SMD_vs_actual = calculo_smd->current_distance_calculation(*current_pose, pose);
+    std::cout << "FASE-"<< stage << " VALOR SMD " << SMD_vs_actual <<std::endl;
+    rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
+    cont_total_rmsd_vs_actual_acc += 1;
+    return SMD_vs_actual;
+}
+
+int TrialMover::getInicio(){
+    int inicio;
+    if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
+        inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
+    }else{
+        inicio = 0;
+    }
+    return inicio;
+}
+
+bool TrialMover::isReemplazoRechazado(bool reemplazo_rechazado, bool accepted_move, Pose & pose){
+    using namespace core;
+    using namespace core::import_pose;
+    using namespace pose;
+    
+    std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<<std::endl;
+    int inicio = getInicio();
+    for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
+        PoseOP current_pose = soluciones_anteriores[idx_pose];
+
+        //core::Real resultCalculo = calculateSMD(current_pose,pose);
+        core::Real resultCalculo = calculateRMSD(current_pose,pose);
+
+        if (accepted_move == 1 && resultCalculo < umbral_apply) {
+            reemplazo_rechazado = true;
+            break;
+        }
+    }
+    return reemplazo_rechazado;
+}
+
+void TrialMover::getCalculationAlgorithm(bool accepted_move, Pose pose_anterior, Pose & pose){
+    using namespace core;
+    using namespace core::import_pose;
+    using namespace pose;
+    
+    
+    std::vector<PoseOP>::iterator it_pose;
+    bool reemplazo_rechazado = false;
+    std::vector<std::string>::iterator it;
+    
+    std::cout << "===== Satage " << "- " << stage << " =====" << std::endl;
+    std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
+    std::cout << "==== apply fragment boltzmann ==== " << "Umbral límite: " << umbral_apply << "===== Satage " << "- " << stage<< std::endl;
+    
+    if (soluciones_anteriores.size() > 0) {
+        
+        accepted_move = mc_->boltzmann( pose, mover_->type() );
+        
+        if (accepted_move == 1) {
+            acomuladorDeAceptadosNormal += 1;
+        }
+        
+        //Solo se acepta el reemplazo si todas las soluciones son mayor
+        //que el actual
+        reemplazo_rechazado = isReemplazoRechazado(reemplazo_rechazado, accepted_move, pose);
+        
+        if (accepted_move == 1 && reemplazo_rechazado == false) {
+            acomuladorDeAceptadosCustom +=1;
+            std::cout << "Acomulador custom " << acomuladorDeAceptadosCustom << " Umbral apply: " << umbral_apply << std::endl;
+        }else {
+            std::cout<< "deshace boltzmann "<< std::endl;
+            pose = pose_anterior;
+        }
+    }else{//empieza el caso soluciones-anteriores =0; Rosetta
+        getCalculationRosetta(pose, accepted_move);
+    }// fin para el caso soluciones_anteriores = 0
+    
+}
 
 void TrialMover::resetAcomuladores(){
     acomuladorDeAceptadosNormal = 0;
@@ -419,98 +512,22 @@ void TrialMover::apply( pose::Pose & pose )
     /// make the move
     mover_->apply( pose );
     
-    // if ( keep_stats_type() == all_stats ) { //// score and get residue energies
-    // Stupid and wasteful.  The structure will be scored inside mc_->boltzman.  mc_->score_function()( pose );
-    // Unneccessary since revision 23846 --- mc_->score_function().accumulate_residue_total_energies( pose );
-    // WAIT FOR IT. stats_.add_score( pose.energies().total_energy() ); ///< score_after_move
-    // }
     using namespace core;
     using namespace core::import_pose;
     using namespace pose;
-    std::vector<PoseOP>::iterator it_pose;
-    /// test if MC accepts or rejects it
-    //  CODIGO ANTERIOR:  bool accepted_move = mc_->boltzmann( pose, mover_->type() );
     
     
     bool accepted_move = false;
-    int inicio;
-    bool reemplazo_rechazado = false;
-    std::vector<std::string>::iterator it;
-    //std::cout << umbralLimite<< std::endl;
     //Contador de Applys
     countApplys++;
-    std::cout << "===== Satage " << "- " << stage << " =====" << std::endl;
-    std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
-    std::string fase4 = "Stage 4";
-    std::cout << "==== apply fragment boltzmann ==== " << "Umbral límite: " << umbral_apply << "===== Satage " << "- " << stage<< std::endl;
+
     if(umbral_apply != 0){
         
-//        if ((!stage.compare(fase4)) && (soluciones_anteriores.size() > 0)) {
-//             std::cout << "===== DENTRO " << "- " << stage << " =====" << std::endl;
-//            mc_->set_temperature(1000000000); //aumentamos la temperatura
-//            accepted_move = mc_->boltzmann( pose, mover_->type() );
-//        }else{
-//            accepted_move = mc_->boltzmann( pose, mover_->type() );
-//        }
-        
-//        if (accepted_move == 1) {
-//            acomuladorDeAceptadosNormal += 1;
-//        }
-        
-        if (soluciones_anteriores.size() > 0) {
-            accepted_move = mc_->boltzmann( pose, mover_->type() );
-            std::cout << "boltzmann 1 " << std::endl;
-            if (accepted_move == 1) {
-                acomuladorDeAceptadosNormal += 1;
-            }
-            if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
-                inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
-            }else{
-                inicio = 0;
-            }
-            std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<<std::endl;
-            
-            for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
-                PoseOP current_pose = soluciones_anteriores[idx_pose];
-
-                //core::Real SMD_vs_actual = calculo_smd->current_distance_calculation(*current_pose, pose);
-                
-                core::Real rmsd_vs_actual = core::scoring::CA_rmsd(*current_pose, pose);
-                //std::cout << "VALOR SMD " << SMD_vs_actual << std::endl;
-                std::cout << "FASE-"<< stage << " VALOR RMSD " << rmsd_vs_actual <<std::endl;
-                //rmsd_vs_actual_acc = rmsd_vs_actual_acc + SMD_vs_actual;
-                rmsd_vs_actual_acc = rmsd_vs_actual_acc + rmsd_vs_actual;
-                cont_total_rmsd_vs_actual_acc += 1;
-
-                //if (accepted_move == 1 && SMD_vs_actual < umbral_apply) {
-                if (accepted_move == 1 && rmsd_vs_actual < umbral_apply) {
-                    reemplazo_rechazado = true;
-                    break;
-                }
-            }
-            //Solo se acepta el reemplazo si todas las soluciones son mayor
-            //que el actual
-            if (accepted_move == 1 && reemplazo_rechazado == false) {
-                acomuladorDeAceptadosCustom +=1;
-                std::cout << "Acomulador custom " << acomuladorDeAceptadosCustom << " Umbral apply: " << umbral_apply << std::endl;
-            }else {
-                std::cout<< "deshace boltzmann "<< std::endl;
-                pose = pose_anterior;
-            }
-        }else{//empieza el caso soluciones-anteriores =0; Rosetta
-            accepted_move = mc_->boltzmann( pose, mover_->type() );
-            std::cout << "boltzmann 2 " << std::endl;
-            if (accepted_move == 1) {
-                acomuladorDeAceptadosNormal += 1;
-            }
-        }// fin para el caso soluciones_anteriores = 0
-        
+        getCalculationAlgorithm(accepted_move, pose_anterior, pose);
+    
     } else { // empieza el caso umbral == 0; Rosetta
-        accepted_move = mc_->boltzmann( pose, mover_->type() );
-        std::cout << "boltzmann 3 " << std::endl;
-        if (accepted_move == 1) {
-            acomuladorDeAceptadosNormal += 1;
-        }
+        getCalculationRosetta(pose, accepted_move);
+    
     }// fin (umbral_apply > 0)
     
     if ( keep_stats_type() == all_stats ) {

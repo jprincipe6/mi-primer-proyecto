@@ -216,6 +216,12 @@ public:
     void inicializarSolucionesAnteriores();
     void setEstadisticasStage4(int index, int numApplys);
     void imprimirEstadisticasStage4(int numPdb);
+    void getCalculationRosetta(Pose & pose, bool accepted_move);
+    void getCalculationAlgorithm(bool accepted_move, Pose pose_anterior, Pose & pose);
+    core::Real calculateRMSD(core::pose::PoseOP current_pose, Pose & pose);
+    core::Real calculateSMD(core::pose::PoseOP current_pose, Pose & pose);
+    int getInicio();
+    bool isReemplazoRechazado(bool reemplazo_rechazado, bool accepted_move, Pose & pose);
     
 public:
     int ultima_solucion_disponible;
