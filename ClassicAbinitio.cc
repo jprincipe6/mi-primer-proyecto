@@ -92,6 +92,7 @@
 #include <iostream>
 #include <iomanip>
 #include <core/import_pose/import_pose.hh>
+#include <map>
 
 
 static basic::Tracer tr( "protocols.abinitio" );
@@ -232,13 +233,33 @@ ClassicAbinitio::ClassicAbinitio(
     close_chbrk_ = false;
 
     stage4_cycles_pack_rate_ = 0.25;
-
     
+    std::ifstream myfile;
+    std::string line;
+    std::string value;
+    std::vector<std::string> elems;
+    myfile.open ("./umbral/umbral.txt", std::ios::in);
+    
+    while (getline(myfile, line)) {
+        if (line.find("-protein") != std::string::npos) {
+            std::string str2 = line.substr (9,line.size());
+            value = str2;
+        }
+    }
+
+    std::map<std::string, std::string> protein_map = {
+        {"1elwA","../common/input_files/1elwA_oldfrags_inputs/vf_1elwA.pdb"},
+        {"1wit","../common/input_files/1wit_oldfrags_inputs/vf_1wit.pdb"},
+        {"1kpeA","../common/input_files/1kpeA_oldfrags_inputs/vf_1kpeA.pdb"}
+    };
 //    utility::vector1<std::string> files = option[in::file::s]();
 //    std::string file = files[0];
-    pose_SMD = core::import_pose::pose_from_file("../common/input_files/1elw.pdb");
-    protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
-    to_centroid.apply(*pose_SMD);
+    if (protein_map.find(value) != protein_map.end()) {
+        pose_SMD = core::import_pose::pose_from_file(protein_map.at(value));
+        protocols::simple_moves::SwitchResidueTypeSetMover to_centroid(core::chemical::CENTROID);
+        to_centroid.apply(*pose_SMD);
+    }
+
 //    }
 }
 
@@ -359,8 +380,10 @@ std::vector<std::string> getUmbrales(){
     myfile.open ("./umbral/umbral.txt", std::ios::in);
     
     while (getline(myfile, line)) {
-        std::string str2 = line.substr (8,line.size());
-        value = str2;
+        if (line.find("-umbral") != std::string::npos) {
+            std::string str2 = line.substr (8,line.size());
+            value = str2;
+        }
     }
     elems = tokenize(value,';');
     
