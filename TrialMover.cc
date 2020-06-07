@@ -430,11 +430,17 @@ bool TrialMover::isReemplazoRechazado(bool reemplazo_rechazado, bool accepted_mo
     
     std::cout << "Umbral (>0): " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< " Estado " << stage<<std::endl;
     int inicio = getInicio();
+    std::cout << "VALOR INICIO: " << getInicio() << std::endl;
     for(int idx_pose = inicio; idx_pose < boost::numeric_cast<int>(soluciones_anteriores.size()) && !reemplazo_rechazado; idx_pose++){
         PoseOP current_pose = soluciones_anteriores[idx_pose];
-
-        //core::Real resultCalculo = calculateSMD(current_pose,pose);
-        core::Real resultCalculo = calculateRMSD(current_pose,pose);
+        core::Real resultCalculo;
+        
+        if (calculo.compare("RMSD")==0) {
+            resultCalculo = calculateRMSD(current_pose,pose);
+        }else if (calculo.compare("SMD")==0){
+            resultCalculo = calculateSMD(current_pose,pose);
+        }
+        //core::Real resultCalculo = calculateRMSD(current_pose,pose);
 
         if (accepted_move == 1 && resultCalculo < umbral_apply) {
             reemplazo_rechazado = true;
@@ -456,7 +462,7 @@ void TrialMover::getCalculationAlgorithm(bool accepted_move, Pose pose_anterior,
     
     std::cout << "===== Satage " << "- " << stage << " =====" << std::endl;
     std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
-    std::cout << "==== apply fragment boltzmann ==== " << "Umbral límite: " << umbral_apply << "===== Satage " << "- " << stage<< std::endl;
+    std::cout << "==== apply fragment boltzmann ==== " << "Umbral límite: " << umbral_apply << " ===== Satage " << "- " << stage<< std::endl;
     
     if (soluciones_anteriores.size() > 0) {
         

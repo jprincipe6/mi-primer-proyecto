@@ -218,6 +218,7 @@ public:
     std::vector<core::pose::PoseOP> soluciones_anteriores_S2;
     std::vector<core::pose::PoseOP> soluciones_anteriores_S3;
     std::vector<std::string> paths_soluciones_pdbs;
+    std::string calculoName;
 protected:
     //@brief construct default monto-carlo object
     virtual void set_default_mc(

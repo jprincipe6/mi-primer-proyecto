@@ -389,6 +389,22 @@ std::vector<std::string> getUmbrales(){
     
     return elems;
 }
+std::string getCalculo(){
+    std::ifstream myfile;
+    std::string line;
+    std::string value;
+    std::vector<std::string> elems;
+    myfile.open ("./umbral/umbral.txt", std::ios::in);
+    
+    while (getline(myfile, line)) {
+        if (line.find("-calculo") != std::string::npos) {
+            std::string str2 = line.substr (9,line.size());
+            value = str2;
+        }
+    }
+    return value;
+}
+
 
 void ClassicAbinitio::apply( pose::Pose & pose ) {
     using namespace moves;
@@ -396,12 +412,13 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
     using namespace scoring::constraints;
 
     
-     umbral_1 = 0;
-     umbral_2 = 0;
-     umbral_3 = 0;
-     umbral_4 = 0;
-     const char *path_input_local = "./soluciones_1elwA";
-     std::vector<std::string> elems = getUmbrales();
+    umbral_1 = 0;
+    umbral_2 = 0;
+    umbral_3 = 0;
+    umbral_4 = 0;
+    const char *path_input_local = "./soluciones_1elwA";
+    std::vector<std::string> elems = getUmbrales();
+    calculoName = getCalculo();
     if(elems.size() > 1){
         umbral_1= std::stod(elems[0]);
         umbral_2= std::stod(elems[1]);
@@ -1050,7 +1067,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     derived->umbral_apply = umbral_1;
     
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
-    
+    derived->calculo = calculoName;
     derived->stage = "Stage 1";
     Size j;
     derived->soluciones_anteriores = soluciones_anteriores;
@@ -1095,6 +1112,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
 
     derived->stage = "Stage 2";
+    derived->calculo = calculoName;
     derived->umbral_apply = umbral_2;
     
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
@@ -1148,6 +1166,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     derived->soluciones_anteriores = soluciones_anteriores_S3;
     int numPdb = derived->soluciones_anteriores.size();
     derived->stage = "Stage 3";
+    derived->calculo = calculoName;
     derived->umbral_apply = umbral_3;
     
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
@@ -1178,6 +1197,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     derived->soluciones_anteriores = soluciones_anteriores_S3;
                     int numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
+                    derived->calculo = calculoName;
                     derived->umbral_apply = umbral_3;
                     
                     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
@@ -1191,6 +1211,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     derived->soluciones_anteriores = soluciones_anteriores_S3;
                     int numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
+                    derived->calculo = calculoName;
                     derived->umbral_apply = umbral_3;
                     
                     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
@@ -1254,6 +1275,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             tr.Debug << "start " << stage4_cycles() << " cycles" << std::endl;
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
             derived->stage = "Stage 4";
+            derived->calculo = calculoName;
             derived->umbral_apply = umbral_4;
             
             derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
