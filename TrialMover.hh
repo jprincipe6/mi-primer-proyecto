@@ -231,6 +231,7 @@ public:
     std::string stage;
     DistanceSMDPtr calculo_smd;
     std::string calculo;
+    int numero_soluciones_anteriores;
 protected:
     std::vector<std::string> paths_soluciones_pdbs;
     

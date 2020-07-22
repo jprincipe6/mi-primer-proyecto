@@ -250,7 +250,34 @@ ClassicAbinitio::ClassicAbinitio(
     std::map<std::string, std::string> protein_map = {
         {"1elwA","../common/input_files/1elwA_oldfrags_inputs/vf_1elwA.pdb"},
         {"1wit","../common/input_files/1wit_oldfrags_inputs/vf_1wit.pdb"},
-        {"1kpeA","../common/input_files/1kpeA_oldfrags_inputs/vf_1kpeA.pdb"}
+        {"1kpeA","../common/input_files/1kpeA_oldfrags_inputs/vf_1kpe.pdb"},
+        {"1tig","../common/input_files/1tig_oldfrags_inputs/vf_1tig.pdb"},
+        {"1tul","../common/input_files/1tul_oldfrags_inputs/vf_1tul.pdb"},
+        {"1acf","../common/input_files/1acf_oldfrags_inputs/vf_1acf.pdb"},
+        {"1bgf","../common/input_files/1bgf_oldfrags_inputs/vf_1bgf.pdb"},
+        {"1bkrA","../common/input_files/1bkrA_oldfrags_inputs/vf_1bkr.pdb"},
+        {"1c9oA","../common/input_files/1c9oA_oldfrags_inputs/vf_1c9o.pdb"},
+        {"1cg5B","../common/input_files/1cg5B_oldfrags_inputs/vf_1cg5.pdb"},
+        {"1ctf","../common/input_files/1ctf_oldfrags_inputs/vf_1ctf.pdb"},
+        {"1dhn","../common/input_files/1dhn_oldfrags_inputs/vf_1dhn.pdb"},
+        {"1eyvA","../common/input_files/1eyvA_oldfrags_inputs/vf_1eyv.pdb"},
+        {"1fna","../common/input_files/1fna_oldfrags_inputs/vf_1fna.pdb"},
+        {"1gvp","../common/input_files/1gvp_oldfrags_inputs/vf_1gvp.pdb"},
+        {"1hz6A","../common/input_files/1hz6A_oldfrags_inputs/vf_1hz6.pdb"},
+        {"256bA","../common/input_files/256bA_oldfrags_inputs/vf_256b.pdb"},
+        {"2vik","../common/input_files/2vik_oldfrags_inputs/vf_2vik.pdb"},
+        {"2ci2I","../common/input_files/2ci2I_oldfrags_inputs/vf_2ci2.pdb"},
+        {"1vcc","../common/input_files/1vcc_oldfrags_inputs/vf_1vcc.pdb"},
+        {"1tit","../common/input_files/1tit_oldfrags_inputs/vf_1tit.pdb"},
+        {"1ten","../common/input_files/1ten_oldfrags_inputs/vf_1ten.pdb"},
+        {"1who","../common/input_files/1who_oldfrags_inputs/vf_1who.pdb"},
+        {"1opd","../common/input_files/1opd_oldfrags_inputs/vf_1opd.pdb"},
+        {"1npsA","../common/input_files/1npsA_oldfrags_inputs/vf_1nps.pdb"},
+        {"2chf","../common/input_files/2chf_oldfrags_inputs/vf_2chf.pdb"},
+        {"1rnbA","../common/input_files/1rnbA_oldfrags_inputs/vf_1rnb.pdb"},
+        {"1lis","../common/input_files/1lis_oldfrags_inputs/vf_1lis.pdb"},
+        {"1iibA","../common/input_files/1iibA_oldfrags_inputs/vf_1iib.pdb"},
+        {"1c8cA","../common/input_files/1c8cA_oldfrags_inputs/vf_1c8c.pdb"}
     };
 //    utility::vector1<std::string> files = option[in::file::s]();
 //    std::string file = files[0];
@@ -405,6 +432,22 @@ std::string getCalculo(){
     return value;
 }
 
+std::string getNumSolAnteriores(){
+    std::ifstream myfile;
+    std::string line;
+    std::string value;
+    std::vector<std::string> elems;
+    myfile.open ("./umbral/umbral.txt", std::ios::in);
+    while (getline(myfile, line)) {
+        std::string key_option= "-num_soluciones_anteriores";
+        if (line.find(key_option) != std::string::npos) {
+            std::string str2 = line.substr ((key_option.length()+1),line.size());
+            value = str2;
+            std::cout << "Valor: " << value <<std::endl;
+        }
+    }
+    return value;
+}
 
 void ClassicAbinitio::apply( pose::Pose & pose ) {
     using namespace moves;
@@ -419,6 +462,7 @@ void ClassicAbinitio::apply( pose::Pose & pose ) {
     const char *path_input_local = "./soluciones_1elwA";
     std::vector<std::string> elems = getUmbrales();
     calculoName = getCalculo();
+    n_s_a = std::stod(getNumSolAnteriores());
     if(elems.size() > 1){
         umbral_1= std::stod(elems[0]);
         umbral_2= std::stod(elems[1]);
@@ -1069,6 +1113,7 @@ bool ClassicAbinitio::do_stage1_cycles( pose::Pose &pose ) {
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     derived->calculo = calculoName;
     derived->stage = "Stage 1";
+    derived->numero_soluciones_anteriores=n_s_a;
     Size j;
     derived->soluciones_anteriores = soluciones_anteriores;
 
@@ -1114,6 +1159,7 @@ bool ClassicAbinitio::do_stage2_cycles( pose::Pose &pose ) {
     derived->stage = "Stage 2";
     derived->calculo = calculoName;
     derived->umbral_apply = umbral_2;
+    derived->numero_soluciones_anteriores=n_s_a;
     
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     
@@ -1147,6 +1193,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
 
     // interlaced score2 / score 5 loops
     // nloops1 and nloops2 could become member-variables and thus changeable from the outside
+    int numPdb = 0;
     int nloop1 = 1;
     int nloop2 = 10; //careful: if you change these the number of structures in the structure store changes.. problem with checkpointing
     // individual checkpoints for each stage3 iteration would be a remedy. ...
@@ -1164,10 +1211,11 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
     moves::TrialMoverOP trials = trial_large();
     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
     derived->soluciones_anteriores = soluciones_anteriores_S3;
-    int numPdb = derived->soluciones_anteriores.size();
+    numPdb = derived->soluciones_anteriores.size();
     derived->stage = "Stage 3";
     derived->calculo = calculoName;
     derived->umbral_apply = umbral_3;
+    derived->numero_soluciones_anteriores=n_s_a;
     
     derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));
     
@@ -1195,7 +1243,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     moves::TrialMoverOP stage3_trials = stage3_mover( pose, lct1, lct2, trials );
                     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(stage3_trials);
                     derived->soluciones_anteriores = soluciones_anteriores_S3;
-                    int numPdb = derived->soluciones_anteriores.size();
+                    numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
                     derived->calculo = calculoName;
                     derived->umbral_apply = umbral_3;
@@ -1209,7 +1257,7 @@ bool ClassicAbinitio::do_stage3_cycles( pose::Pose &pose ) {
                     moves::TrialMoverOP stage3_trials = stage3_mover( pose, lct1, lct2, trials );
                     derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(stage3_trials);
                     derived->soluciones_anteriores = soluciones_anteriores_S3;
-                    int numPdb = derived->soluciones_anteriores.size();
+                    numPdb = derived->soluciones_anteriores.size();
                     derived->stage = "Stage 3";
                     derived->calculo = calculoName;
                     derived->umbral_apply = umbral_3;
@@ -1276,6 +1324,7 @@ bool ClassicAbinitio::do_stage4_cycles( pose::Pose &pose ) {
             derived = utility::pointer::dynamic_pointer_cast<protocols::moves::TrialMover>(trials);
             derived->stage = "Stage 4";
             derived->calculo = calculoName;
+            derived->numero_soluciones_anteriores=n_s_a;
             derived->umbral_apply = umbral_4;
             
             derived->calculo_smd = DistanceSMDPtr( new DistanceSMD(pose_SMD, pose_SMD->secstruct()));

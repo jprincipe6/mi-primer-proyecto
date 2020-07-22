@@ -218,6 +218,7 @@ public:
     std::vector<core::pose::PoseOP> soluciones_anteriores_S2;
     std::vector<core::pose::PoseOP> soluciones_anteriores_S3;
     std::vector<std::string> paths_soluciones_pdbs;
+    
     std::string calculoName;
 protected:
     //@brief construct default monto-carlo object
@@ -453,7 +454,7 @@ public:
     double umbral_2;
     double umbral_3;
     double umbral_4;
-
+    int n_s_a;
     utility::vector1< StageID > recover_low_stages_;
 
 private:

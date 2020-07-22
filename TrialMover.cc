@@ -313,7 +313,7 @@ void TrialMover::imprimirEstadisticasStage4(int numPdb){
         myfile << "================ STAGE - 4 =================" << std::endl;
         
         for (int index=0; index < tamanoStage4; index++) {
-            media = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
+            media = estadisticasStage4[index].media;
             totalRmsdVsActual = estadisticasStage4[index].cont_total_rmsd_vs_actual_acc;
             normal = estadisticasStage4[index].acomuladorDeAceptadosNormal;
             custom = estadisticasStage4[index].acomuladorDeAceptadosCustom;
@@ -415,8 +415,9 @@ core::Real TrialMover::calculateSMD(core::pose::PoseOP current_pose, Pose & pose
 
 int TrialMover::getInicio(){
     int inicio;
-    if (boost::numeric_cast<int>(soluciones_anteriores.size()) > 10){
-        inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - 10;
+    std::cout << " numero_sol_anteriores " << numero_soluciones_anteriores <<std::endl;
+    if (boost::numeric_cast<int>(soluciones_anteriores.size()) > numero_soluciones_anteriores){
+        inicio = boost::numeric_cast<int>(soluciones_anteriores.size()) - numero_soluciones_anteriores;
     }else{
         inicio = 0;
     }
@@ -461,7 +462,7 @@ void TrialMover::getCalculationAlgorithm(bool accepted_move, Pose pose_anterior,
     std::vector<std::string>::iterator it;
     
     std::cout << "===== Satage " << "- " << stage << " =====" << std::endl;
-    std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size()<< std::endl;
+    std::cout << "Umbral límite: " << umbral_apply << " soluciones_anteriores "<< soluciones_anteriores.size() <<std::endl;
     std::cout << "==== apply fragment boltzmann ==== " << "Umbral límite: " << umbral_apply << " ===== Satage " << "- " << stage<< std::endl;
     
     if (soluciones_anteriores.size() > 0) {
@@ -492,6 +493,7 @@ void TrialMover::getCalculationAlgorithm(bool accepted_move, Pose pose_anterior,
 void TrialMover::resetAcomuladores(){
     acomuladorDeAceptadosNormal = 0;
     acomuladorDeAceptadosCustom = 0;
+    rmsd_vs_actual_acc = 0;
     cont_total_rmsd_vs_actual_acc = 0;
     countApplys = 0;
 
